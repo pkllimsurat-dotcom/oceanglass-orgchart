@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ocean Glass — โครงสร้างองค์กร</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#DA1F26;--red-light:#FDECEA;
+  --blk:#1A1A1A;--grey:#76777B;
+  --mid:#E4E4E4;--ltgrey:#F5F5F5;--surface:#FAFAFA;
+  --wh:#FFFFFF;--shadow:rgba(0,0,0,.07);
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--surface);color:var(--blk);min-height:100vh;}
+
+/* ── Topbar ────────────────────────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:var(--wh);border-bottom:2.5px solid var(--red);
+  padding:0 24px;display:flex;align-items:center;gap:16px;height:54px;
+  box-shadow:0 1px 6px var(--shadow);
+}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo-box{width:30px;height:30px;background:var(--red);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;}
+.logo-main{font-size:14px;font-weight:600;color:var(--blk);}
+.logo-sub{font-size:10px;color:var(--grey);}
+.search-wrap{
+  display:flex;align-items:center;gap:8px;flex:1;max-width:320px;
+  background:var(--ltgrey);border:1px solid var(--mid);border-radius:6px;padding:6px 12px;
+  transition:border-color .15s;
+}
+.search-wrap:focus-within{border-color:var(--red);background:var(--wh);}
+.search-wrap svg{flex-shrink:0;}
+#searchInput{background:none;border:none;outline:none;font-size:13px;color:var(--blk);width:100%;}
+#searchInput::placeholder{color:#bbb;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.badge{background:var(--red-light);color:var(--red);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:500;}
+
+/* ── Legend ────────────────────────────────────────────────────────── */
+.legend{
+  display:flex;gap:20px;padding:8px 24px;flex-wrap:wrap;
+  border-bottom:1px solid var(--mid);background:var(--wh);
+}
+.li{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--grey);}
+.ldot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* ── Tree Container ────────────────────────────────────────────────── */
+#treeWrap{
+  padding:32px 24px 48px;
+  overflow-x:auto;overflow-y:visible;
+  min-height:calc(100vh - 120px);
+}
+.tree-level{display:flex;justify-content:center;gap:0;position:relative;}
+.tree-group{display:flex;flex-direction:column;align-items:center;}
+.tree-children{display:flex;gap:0;justify-content:center;position:relative;}
+
+/* ── Connector SVG overlay ─────────────────────────────────────────── */
+.connector-svg{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;}
+
+/* ── Card ──────────────────────────────────────────────────────────── */
+.card{
+  background:var(--wh);border:1px solid var(--mid);border-radius:8px;
+  display:flex;flex-direction:row;align-items:stretch;
+  cursor:pointer;width:172px;margin:0 8px;
+  box-shadow:0 1px 5px var(--shadow);
+  transition:box-shadow .15s,border-color .15s,transform .1s;
+  overflow:hidden;flex-shrink:0;
+}
+.card:hover{box-shadow:0 4px 18px rgba(218,31,38,.13);border-color:#DA1F2666;transform:translateY(-1px);}
+.card-accent{width:4px;flex-shrink:0;}
+.card-body{padding:9px 10px;display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
+.av{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:500;overflow:hidden;
+  border:1.5px solid transparent;
+}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.av-row{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+.av-info{min-width:0;flex:1;}
+.cid{font-size:8.5px;color:#c0c0c0;letter-spacing:.3px;}
+.cnm{font-size:10.5px;font-weight:600;color:var(--blk);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cen{font-size:9px;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cpos{font-size:9px;color:var(--grey);line-height:1.3;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px solid var(--ltgrey);}
+.lvpill{border-radius:3px;padding:1px 6px;font-size:8px;font-weight:600;letter-spacing:.2px;}
+.stats-row{display:flex;gap:3px;}
+.pill{background:var(--ltgrey);border-radius:3px;padding:1px 5px;font-size:7.5px;color:var(--grey);}
+
+/* accent colours */
+.acc-red  .card-accent{background:var(--red);}
+.acc-red  .av{background:var(--red-light);color:var(--red);border-color:#F5A0A350;}
+.acc-red  .lvpill{background:var(--red);color:#fff;}
+.acc-dark .card-accent{background:var(--blk);}
+.acc-dark .av{background:#EBEBEB;color:var(--blk);border-color:#C8C8C850;}
+.acc-dark .lvpill{background:var(--blk);color:#fff;}
+.acc-grey .card-accent{background:var(--grey);}
+.acc-grey .av{background:#F5F5F5;color:var(--grey);border-color:#D0D0D050;}
+.acc-grey .lvpill{background:var(--grey);color:#fff;}
+.acc-light .card-accent{background:#C0C0C0;}
+.acc-light .av{background:#F8F8F8;color:#999;border-color:#E0E0E0;}
+.acc-light .lvpill{background:#C0C0C0;color:#fff;}
+
+/* connector lines */
+.v-line,.h-line{position:absolute;background:var(--mid);}
+
+/* ── Popup ─────────────────────────────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(26,26,26,.4);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.overlay.on{display:flex;}
+.popup{background:var(--wh);border-radius:12px;width:340px;max-width:100%;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.2);}
+.ph{background:var(--red);padding:18px 20px;display:flex;align-items:center;gap:14px;}
+.pav{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden;}
+.pav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.pinfo{min-width:0;flex:1;}
+.pname{font-size:15px;font-weight:600;color:#fff;line-height:1.3;}
+.pname-en{font-size:11px;color:rgba(255,255,255,.75);margin-top:2px;}
+.ppos{font-size:11px;color:rgba(255,255,255,.85);margin-top:4px;line-height:1.3;}
+.pclose{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:background .15s;margin-left:auto;}
+.pclose:hover{background:rgba(255,255,255,.3);}
+.pb{padding:16px 20px;}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--ltgrey);}
+.ir:last-child{border:none;}
+.il{font-size:11px;color:var(--grey);}
+.iv{font-size:11px;color:var(--blk);font-weight:500;text-align:right;}
+.iv.r{color:var(--red);}
+
+/* ── Loading / Error ───────────────────────────────────────────────── */
+.center-msg{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:12px;color:var(--grey);}
+.spinner{width:36px;height:36px;border:3px solid var(--mid);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.err-icon{font-size:40px;}
+
+/* ── Search highlight ──────────────────────────────────────────────── */
+.card.highlighted{border-color:var(--red);box-shadow:0 0 0 2px rgba(218,31,38,.25);}
+.card.dimmed{opacity:.35;}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+@media(max-width:600px){
+  .topbar{padding:0 12px;height:48px;}
+  #treeWrap{padding:16px 8px;}
+  .logo-sub{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-box">OG</div>
+    <div>
+      <div class="logo-main">Ocean Glass</div>
+      <div class="logo-sub">โครงสร้างองค์กร</div>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+      <circle cx="5.5" cy="5.5" r="4" stroke="#bbb" stroke-width="1.3"/>
+      <line x1="8.5" y1="8.5" x2="11.5" y2="11.5" stroke="#bbb" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    <input id="searchInput" placeholder="ค้นหาชื่อ / ชื่ออังกฤษ / รหัส / ตำแหน่ง..." oninput="onSearch(this.value)"/>
+  </div>
+  <div class="topbar-right">
+    <span class="badge" id="totalBadge">กำลังโหลด...</span>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="li"><div class="ldot" style="background:var(--red)"></div>MD / Executive Director</div>
+  <div class="li"><div class="ldot" style="background:var(--blk)"></div>Department Manager</div>
+  <div class="li"><div class="ldot" style="background:var(--grey)"></div>Section / Support Manager</div>
+  <div class="li"><div class="ldot" style="background:#C0C0C0"></div>Staff / Engineer</div>
+</div>
+
+<!-- TREE -->
+<div id="treeWrap">
+  <div class="center-msg" id="loadingMsg">
+    <div class="spinner"></div>
+    <div>กำลังโหลดข้อมูล...</div>
+  </div>
+</div>
+
+<!-- POPUP -->
+<div class="overlay" id="overlay" onclick="closeIfOut(event)">
+  <div class="popup">
+    <div class="ph">
+      <div class="pav" id="pAv">–</div>
+      <div class="pinfo">
+        <div class="pname" id="pName">–</div>
+        <div class="pname-en" id="pNameEn">–</div>
+        <div class="ppos" id="pPos">–</div>
+      </div>
+      <button class="pclose" onclick="closePopup()">✕</button>
+    </div>
+    <div class="pb">
+      <div class="ir"><span class="il">รหัสพนักงาน</span><span class="iv" id="pId">–</span></div>
+      <div class="ir"><span class="il">ระดับ</span><span class="iv r" id="pLevel">–</span></div>
+      <div class="ir"><span class="il">อายุตัว</span><span class="iv" id="pAge">–</span></div>
+      <div class="ir"><span class="il">อายุงาน</span><span class="iv" id="pTenure">–</span></div>
+      <div class="ir"><span class="il">หน่วยงาน</span><span class="iv" id="pDept">–</span></div>
+      <div class="ir"><span class="il">รายงานต่อ</span><span class="iv" id="pReports">–</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ───────────────────────────────────────────────────────────────
+const EXCEL_URL = 'data/employees.xlsx';
+const PHOTO_DIR = 'photos/';
+
+// ── State ────────────────────────────────────────────────────────────────
+let employees = [];   // flat array
+let deptMap   = {};   // dept_id → dept object
+let empMap    = {};   // emp_id  → emp object
+
+// ── Load Excel ───────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const res  = await fetch(EXCEL_URL + '?v=' + Date.now());
+    if (!res.ok) throw new Error('ไม่พบไฟล์ ' + EXCEL_URL);
+    const buf  = await res.arrayBuffer();
+    const wb   = XLSX.read(buf, { type: 'array', cellDates: true });
+
+    // ── Departments sheet ─────────────────────────────────────────────
+    const dws  = wb.Sheets['Departments'];
+    const drows= XLSX.utils.sheet_to_json(dws, { defval: '' });
+    drows.forEach(r => {
+      const id = String(r['dept_id'] || '').trim();
+      if (!id) return;
+      deptMap[id] = {
+        id,
+        name:       String(r['dept_name']    || '').trim(),
+        name_en:    String(r['dept_name_en'] || '').trim(),
+        parent_id:  String(r['parent_dept_id'] || '').trim(),
+        level_order:Number(r['level_order']  || 0),
+        color:      String(r['color_hex']    || '').trim(),
+        children:   [],
+        emp_head:   null,
+      };
+    });
+
+    // ── Employees sheet ───────────────────────────────────────────────
+    const ews  = wb.Sheets['Employees'];
+    const erows= XLSX.utils.sheet_to_json(ews, { defval: '' });
+
+    erows.forEach(r => {
+      const id = String(r['emp_id'] || '').trim();
+      if (!id || id === 'emp_id') return;
+      const birth   = parseDate(r['birth_date']);
+      const start   = parseDate(r['start_date']);
+      const emp = {
+        id,
+        name_th:    String(r['name_th']    || '').trim(),
+        name_en:    String(r['name_en']    || '').trim(),
+        nickname:   String(r['nickname']   || '').trim(),
+        position:   String(r['position']   || '').trim(),
+        level:      String(r['level']      || '').trim(),
+        dept_id:    String(r['dept_id']    || '').trim(),
+        reports_to: String(r['reports_to'] || '').trim(),
+        photo:      String(r['photo_filename'] || '').trim(),
+        birth_date: birth,
+        start_date: start,
+        age:        birth  ? diffYears(birth,  new Date()) : null,
+        tenure:     start  ? diffYears(start,  new Date()) : null,
+      };
+      employees.push(emp);
+      empMap[id] = emp;
+    });
+
+    document.getElementById('totalBadge').textContent = employees.length + ' คน';
+    buildTree();
+
+  } catch (e) {
+    document.getElementById('treeWrap').innerHTML =
+      `<div class="center-msg"><div class="err-icon">⚠️</div>
+       <div style="font-size:14px;color:var(--blk);">ไม่สามารถโหลดข้อมูลได้</div>
+       <div style="font-size:12px;">${e.message}</div>
+       <div style="font-size:11px;color:#bbb;">ตรวจสอบว่าไฟล์ data/employees.xlsx อยู่ในโฟลเดอร์ที่ถูกต้อง</div></div>`;
+  }
+}
+
+// ── Date helpers ──────────────────────────────────────────────────────────
+function parseDate(v) {
+  if (!v) return null;
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  const s = String(v).trim();
+  // DD/MM/YYYY
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return new Date(+m[3], +m[2]-1, +m[1]);
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+function diffYears(a, b) {
+  let y = b.getFullYear() - a.getFullYear();
+  const m = b.getMonth() - a.getMonth();
+  if (m < 0 || (m === 0 && b.getDate() < a.getDate())) y--;
+  return y;
+}
+function fmtAge(n) { return n !== null ? n + ' ปี' : '—'; }
+function fmtTenure(n) {
+  if (n === null) return '—';
+  return n < 1 ? '< 1 ปี' : n + ' ปีงาน';
+}
+
+// ── Build Tree ────────────────────────────────────────────────────────────
+function buildTree() {
+  // Find root employee (no reports_to)
+  const root = employees.find(e => !e.reports_to || e.reports_to === '');
+  if (!root) {
+    document.getElementById('treeWrap').innerHTML =
+      `<div class="center-msg"><div class="err-icon">⚠️</div>
+       <div>ไม่พบ root employee (reports_to ว่าง)</div></div>`;
+    return;
+  }
+
+  // Build children map
+  const childrenOf = {};
+  employees.forEach(e => {
+    const pid = e.reports_to;
+    if (!pid) return;
+    if (!childrenOf[pid]) childrenOf[pid] = [];
+    childrenOf[pid].push(e);
+  });
+
+  // Render
+  const wrap = document.getElementById('treeWrap');
+  wrap.innerHTML = '';
+  const container = document.createElement('div');
+  container.style.cssText = 'display:inline-block;min-width:100%;padding-bottom:32px;';
+  container.appendChild(renderNode(root, childrenOf, 0));
+  wrap.appendChild(container);
+
+  // Draw lines after DOM settles
+  setTimeout(drawAllLines, 80);
+}
+
+// ── Render a node + its subtree ───────────────────────────────────────────
+function renderNode(emp, childrenOf, depth) {
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:inline-flex;flex-direction:column;align-items:center;';
+
+  // Card
+  const card = makeCard(emp, depth);
+  card.id = 'card-' + emp.id;
+  wrapper.appendChild(card);
+
+  // Children
+  const kids = (childrenOf[emp.id] || []);
+  if (kids.length === 0) return wrapper;
+
+  // Vertical down from card
+  const vDown = document.createElement('div');
+  vDown.className = 'v-connector';
+  vDown.dataset.from = emp.id;
+  vDown.style.cssText = 'width:1.5px;height:28px;background:var(--mid);margin:0 auto;';
+  wrapper.appendChild(vDown);
+
+  // Children row
+  const row = document.createElement('div');
+  row.className = 'children-row';
+  row.dataset.parent = emp.id;
+  row.style.cssText = 'display:flex;align-items:flex-start;position:relative;';
+
+  kids.forEach(child => {
+    const childWrap = document.createElement('div');
+    childWrap.style.cssText = 'display:inline-flex;flex-direction:column;align-items:center;';
+
+    // Vertical up into horizontal bar
+    const vUp = document.createElement('div');
+    vUp.style.cssText = 'width:1.5px;height:20px;background:var(--mid);margin:0 auto;';
+    childWrap.appendChild(vUp);
+    childWrap.appendChild(renderNode(child, childrenOf, depth + 1));
+    row.appendChild(childWrap);
+  });
+
+  // Horizontal bar overlay (drawn in JS after layout)
+  wrapper.appendChild(row);
+  return wrapper;
+}
+
+// ── Draw horizontal connector bars ────────────────────────────────────────
+function drawAllLines() {
+  document.querySelectorAll('.children-row').forEach(row => {
+    const children = row.querySelectorAll(':scope > div');
+    if (children.length < 2) return;
+
+    const rowRect = row.getBoundingClientRect();
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
+    // Top of each child's v-up stub = first child element top
+    const lefts  = [];
+    const rights  = [];
+    children.forEach(c => {
+      const r = c.getBoundingClientRect();
+      const mid = r.left + r.width / 2 + scrollX - (row.getBoundingClientRect().left + scrollX);
+      lefts.push(mid);
+    });
+
+    const minX = Math.min(...lefts);
+    const maxX = Math.max(...lefts);
+    const y    = 20; // height of vUp stub
+
+    // Draw SVG bar
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.style.cssText = `position:absolute;top:0;left:0;width:${row.offsetWidth}px;height:${y}px;pointer-events:none;overflow:visible;`;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', minX);
+    line.setAttribute('x2', maxX);
+    line.setAttribute('y1', y);
+    line.setAttribute('y2', y);
+    line.setAttribute('stroke','#E4E4E4');
+    line.setAttribute('stroke-width','1.5');
+    svg.appendChild(line);
+    row.style.position = 'relative';
+    row.insertBefore(svg, row.firstChild);
+  });
+}
+
+// ── Make card DOM ─────────────────────────────────────────────────────────
+function makeCard(emp, depth) {
+  const accClass = depth === 0 ? 'acc-red'
+                 : depth === 1 ? 'acc-red'
+                 : depth === 2 ? 'acc-dark'
+                 : depth === 3 ? 'acc-grey'
+                 : 'acc-light';
+
+  const card = document.createElement('div');
+  card.className = 'card ' + accClass;
+  card.onclick = () => showPopup(emp);
+
+  // Avatar
+  const avHTML = emp.photo
+    ? `<div class="av"><img src="${PHOTO_DIR}${emp.photo}" alt="${emp.nickname || ''}" onerror="this.parentElement.textContent='${avatarInitials(emp)}'"/></div>`
+    : `<div class="av">${avatarInitials(emp)}</div>`;
+
+  card.innerHTML = `
+    <div class="card-accent"></div>
+    <div class="card-body">
+      <div class="av-row">
+        ${avHTML}
+        <div class="av-info">
+          <div class="cid">#${emp.id}</div>
+          <div class="cnm">${emp.name_th}</div>
+          <div class="cen">${emp.name_en || '—'}</div>
+        </div>
+      </div>
+      <div class="cpos">${emp.position}</div>
+      <div class="card-footer">
+        <span class="lvpill">${emp.level || '—'}</span>
+        <div class="stats-row">
+          <div class="pill">${fmtAge(emp.age)}</div>
+          <div class="pill">${fmtTenure(emp.tenure)}</div>
+        </div>
+      </div>
+    </div>`;
+  return card;
+}
+
+function avatarInitials(emp) {
+  if (emp.nickname) return emp.nickname;
+  const parts = emp.name_th.trim().split(/\s+/);
+  return parts.length >= 2 ? parts[0].slice(0,1) + parts[1].slice(0,1) : emp.name_th.slice(0,2);
+}
+
+// ── Popup ─────────────────────────────────────────────────────────────────
+function showPopup(emp) {
+  // Avatar
+  const avEl = document.getElementById('pAv');
+  if (emp.photo) {
+    avEl.innerHTML = `<img src="${PHOTO_DIR}${emp.photo}" alt="" onerror="this.parentElement.textContent='${avatarInitials(emp)}'"/>`;
+  } else {
+    avEl.textContent = avatarInitials(emp);
+  }
+
+  // Reports-to name
+  const boss = empMap[emp.reports_to];
+  const bossStr = boss ? `${boss.name_th} (#${boss.id})` : '—';
+
+  // Dept name
+  const dept = deptMap[emp.dept_id];
+  const deptStr = dept ? dept.name : (emp.dept_id || '—');
+
+  document.getElementById('pName').textContent    = emp.name_th;
+  document.getElementById('pNameEn').textContent  = emp.name_en || '—';
+  document.getElementById('pPos').textContent     = emp.position;
+  document.getElementById('pId').textContent      = '#' + emp.id;
+  document.getElementById('pLevel').textContent   = emp.level || '—';
+  document.getElementById('pAge').textContent     = fmtAge(emp.age);
+  document.getElementById('pTenure').textContent  = emp.tenure !== null ? emp.tenure + ' ปี' : '—';
+  document.getElementById('pDept').textContent    = deptStr;
+  document.getElementById('pReports').textContent = bossStr;
+
+  document.getElementById('overlay').classList.add('on');
+}
+function closePopup() { document.getElementById('overlay').classList.remove('on'); }
+function closeIfOut(e) { if (e.target === document.getElementById('overlay')) closePopup(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
+
+// ── Search ────────────────────────────────────────────────────────────────
+let searchTimer;
+function onSearch(v) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => applySearch(v.trim().toLowerCase()), 160);
+}
+function applySearch(q) {
+  const cards = document.querySelectorAll('.card');
+  if (!q) { cards.forEach(c => c.classList.remove('highlighted','dimmed')); return; }
+
+  const matches = new Set(
+    employees
+      .filter(e =>
+        e.name_th.toLowerCase().includes(q) ||
+        e.name_en.toLowerCase().includes(q) ||
+        e.id.includes(q) ||
+        e.position.toLowerCase().includes(q) ||
+        (e.nickname && e.nickname.toLowerCase().includes(q))
+      )
+      .map(e => 'card-' + e.id)
+  );
+
+  cards.forEach(c => {
+    if (matches.has(c.id)) {
+      c.classList.add('highlighted');
+      c.classList.remove('dimmed');
+    } else {
+      c.classList.add('dimmed');
+      c.classList.remove('highlighted');
+    }
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
