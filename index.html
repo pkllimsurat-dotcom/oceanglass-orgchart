@@ -2,173 +2,126 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>Ocean Glass — โครงสร้างองค์กร</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-/* ── Reset & Variables ─────────────────────────────────────────────── */
-*{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --red:#DA1F26;--red-light:#FDECEA;
-  --blk:#1A1A1A;--grey:#76777B;
-  --mid:#E4E4E4;--ltgrey:#F5F5F5;--surface:#FAFAFA;
-  --wh:#FFFFFF;--shadow:rgba(0,0,0,.07);
-}
-body{font-family:'Segoe UI',Arial,sans-serif;background:var(--surface);color:var(--blk);min-height:100vh;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--red:#DA1F26;--red-light:#FDECEA;--blk:#1A1A1A;--grey:#76777B;--mid:#E4E4E4;--ltgrey:#F5F5F5;--surface:#FAFAFA;--wh:#FFFFFF;--shadow:rgba(0,0,0,.07);}
+html,body{font-family:'Segoe UI',Arial,sans-serif;background:var(--surface);color:var(--blk);}
 
-/* ── Topbar ────────────────────────────────────────────────────────── */
-.topbar{
-  position:sticky;top:0;z-index:40;
-  background:var(--wh);border-bottom:2.5px solid var(--red);
-  padding:0 24px;display:flex;align-items:center;gap:16px;height:54px;
-  box-shadow:0 1px 6px var(--shadow);
-}
-.logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.logo-box{width:30px;height:30px;background:var(--red);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;}
-.logo-main{font-size:14px;font-weight:600;color:var(--blk);}
+.topbar{position:sticky;top:0;z-index:40;background:var(--wh);border-bottom:2.5px solid var(--red);padding:0 14px;display:flex;align-items:center;gap:10px;height:52px;box-shadow:0 1px 6px var(--shadow);}
+.logo{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.logo-box{width:28px;height:28px;background:var(--red);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;}
+.logo-main{font-size:13px;font-weight:600;color:var(--blk);}
 .logo-sub{font-size:10px;color:var(--grey);}
-.search-wrap{
-  display:flex;align-items:center;gap:8px;flex:1;max-width:320px;
-  background:var(--ltgrey);border:1px solid var(--mid);border-radius:6px;padding:6px 12px;
-  transition:border-color .15s;
-}
+.search-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:100px;max-width:300px;background:var(--ltgrey);border:1px solid var(--mid);border-radius:6px;padding:6px 10px;transition:border-color .15s;}
 .search-wrap:focus-within{border-color:var(--red);background:var(--wh);}
-.search-wrap svg{flex-shrink:0;}
 #searchInput{background:none;border:none;outline:none;font-size:13px;color:var(--blk);width:100%;}
 #searchInput::placeholder{color:#bbb;}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
-.badge{background:var(--red-light);color:var(--red);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:500;}
+.badge{background:var(--red-light);color:var(--red);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;margin-left:auto;flex-shrink:0;}
 
-/* ── Legend ────────────────────────────────────────────────────────── */
-.legend{
-  display:flex;gap:20px;padding:8px 24px;flex-wrap:wrap;
-  border-bottom:1px solid var(--mid);background:var(--wh);
-}
-.li{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--grey);}
-.ldot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.div-bar{padding:8px 14px;background:var(--wh);border-bottom:1px solid var(--mid);display:flex;align-items:center;gap:8px;}
+.div-label{font-size:11px;color:var(--grey);white-space:nowrap;flex-shrink:0;}
+.div-scroll{display:flex;gap:6px;overflow-x:auto;flex:1;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.div-scroll::-webkit-scrollbar{display:none;}
+.div-btn{padding:4px 12px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid var(--mid);background:var(--ltgrey);color:var(--grey);white-space:nowrap;flex-shrink:0;transition:all .15s;}
+.div-btn.active,.div-btn:hover{background:var(--red);border-color:var(--red);color:#fff;}
 
-/* ── Tree Container ────────────────────────────────────────────────── */
-#treeWrap{
-  padding:32px 24px 48px;
-  overflow-x:auto;overflow-y:visible;
-  min-height:calc(100vh - 120px);
-}
-.tree-level{display:flex;justify-content:center;gap:0;position:relative;}
-.tree-group{display:flex;flex-direction:column;align-items:center;}
-.tree-children{display:flex;gap:0;justify-content:center;position:relative;}
+.legend{display:flex;gap:14px;padding:5px 14px;flex-wrap:wrap;border-bottom:1px solid var(--mid);background:var(--wh);}
+.li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--grey);}
+.ldot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
-/* ── Connector SVG overlay ─────────────────────────────────────────── */
-.connector-svg{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;}
+#treeWrap{padding:20px 14px 60px;overflow:auto;min-height:300px;}
 
-/* ── Card ──────────────────────────────────────────────────────────── */
-.card{
-  background:var(--wh);border:1px solid var(--mid);border-radius:8px;
-  display:flex;flex-direction:row;align-items:stretch;
-  cursor:pointer;width:172px;margin:0 8px;
-  box-shadow:0 1px 5px var(--shadow);
-  transition:box-shadow .15s,border-color .15s,transform .1s;
-  overflow:hidden;flex-shrink:0;
-}
-.card:hover{box-shadow:0 4px 18px rgba(218,31,38,.13);border-color:#DA1F2666;transform:translateY(-1px);}
+.card{background:var(--wh);border:1px solid var(--mid);border-radius:8px;display:flex;flex-direction:row;align-items:stretch;cursor:pointer;width:158px;margin:0 5px;box-shadow:0 1px 4px var(--shadow);transition:box-shadow .15s,border-color .15s;overflow:hidden;flex-shrink:0;}
+.card:active{opacity:.85;}
+.card:hover{box-shadow:0 3px 14px rgba(218,31,38,.12);border-color:#DA1F2660;}
 .card-accent{width:4px;flex-shrink:0;}
-.card-body{padding:9px 10px;display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
-.av{
-  width:36px;height:36px;border-radius:50%;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:500;overflow:hidden;
-  border:1.5px solid transparent;
-}
+.card-body{padding:7px 8px;display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
+.av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;overflow:hidden;border:1.5px solid transparent;}
 .av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.av-row{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+.av-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
 .av-info{min-width:0;flex:1;}
-.cid{font-size:8.5px;color:#c0c0c0;letter-spacing:.3px;}
-.cnm{font-size:10.5px;font-weight:600;color:var(--blk);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cen{font-size:9px;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cpos{font-size:9px;color:var(--grey);line-height:1.3;}
-.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px solid var(--ltgrey);}
-.lvpill{border-radius:3px;padding:1px 6px;font-size:8px;font-weight:600;letter-spacing:.2px;}
+.cid{font-size:7.5px;color:#c0c0c0;letter-spacing:.3px;}
+.cnm{font-size:10px;font-weight:600;color:var(--blk);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cen{font-size:8.5px;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cpos{font-size:8.5px;color:var(--grey);line-height:1.3;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:3px;padding-top:3px;border-top:1px solid var(--ltgrey);}
+.lvpill{border-radius:3px;padding:1px 5px;font-size:7.5px;font-weight:700;letter-spacing:.2px;}
 .stats-row{display:flex;gap:3px;}
-.pill{background:var(--ltgrey);border-radius:3px;padding:1px 5px;font-size:7.5px;color:var(--grey);}
+.pill{background:var(--ltgrey);border-radius:3px;padding:1px 4px;font-size:7px;color:var(--grey);}
 
-/* accent colours */
-.acc-red  .card-accent{background:var(--red);}
-.acc-red  .av{background:var(--red-light);color:var(--red);border-color:#F5A0A350;}
-.acc-red  .lvpill{background:var(--red);color:#fff;}
-.acc-dark .card-accent{background:var(--blk);}
-.acc-dark .av{background:#EBEBEB;color:var(--blk);border-color:#C8C8C850;}
-.acc-dark .lvpill{background:var(--blk);color:#fff;}
-.acc-grey .card-accent{background:var(--grey);}
-.acc-grey .av{background:#F5F5F5;color:var(--grey);border-color:#D0D0D050;}
-.acc-grey .lvpill{background:var(--grey);color:#fff;}
-.acc-light .card-accent{background:#C0C0C0;}
-.acc-light .av{background:#F8F8F8;color:#999;border-color:#E0E0E0;}
-.acc-light .lvpill{background:#C0C0C0;color:#fff;}
+.acc-red .card-accent{background:var(--red);} .acc-red .av{background:var(--red-light);color:var(--red);border-color:#F5A0A350;} .acc-red .lvpill{background:var(--red);color:#fff;}
+.acc-dark .card-accent{background:var(--blk);} .acc-dark .av{background:#EBEBEB;color:var(--blk);border-color:#C8C8C850;} .acc-dark .lvpill{background:var(--blk);color:#fff;}
+.acc-grey .card-accent{background:var(--grey);} .acc-grey .av{background:#F5F5F5;color:var(--grey);border-color:#D0D0D050;} .acc-grey .lvpill{background:var(--grey);color:#fff;}
+.acc-light .card-accent{background:#C0C0C0;} .acc-light .av{background:#F8F8F8;color:#999;} .acc-light .lvpill{background:#C0C0C0;color:#fff;}
 
-/* connector lines */
-.v-line,.h-line{position:absolute;background:var(--mid);}
+.card.highlighted{border-color:var(--red)!important;box-shadow:0 0 0 2px rgba(218,31,38,.3)!important;}
+.card.dimmed{opacity:.25;pointer-events:none;}
 
-/* ── Popup ─────────────────────────────────────────────────────────── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(26,26,26,.4);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.children-row{display:flex;align-items:flex-start;position:relative;}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(26,26,26,.45);z-index:200;align-items:center;justify-content:center;padding:14px;}
 .overlay.on{display:flex;}
-.popup{background:var(--wh);border-radius:12px;width:340px;max-width:100%;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.2);}
-.ph{background:var(--red);padding:18px 20px;display:flex;align-items:center;gap:14px;}
-.pav{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden;}
+.popup{background:var(--wh);border-radius:12px;width:100%;max-width:360px;max-height:92vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);}
+.ph{background:var(--red);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1;}
+.pav{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;}
 .pav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .pinfo{min-width:0;flex:1;}
-.pname{font-size:15px;font-weight:600;color:#fff;line-height:1.3;}
-.pname-en{font-size:11px;color:rgba(255,255,255,.75);margin-top:2px;}
-.ppos{font-size:11px;color:rgba(255,255,255,.85);margin-top:4px;line-height:1.3;}
-.pclose{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:background .15s;margin-left:auto;}
-.pclose:hover{background:rgba(255,255,255,.3);}
-.pb{padding:16px 20px;}
-.ir{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--ltgrey);}
+.pname{font-size:14px;font-weight:600;color:#fff;line-height:1.3;}
+.pname-en{font-size:10px;color:rgba(255,255,255,.75);margin-top:1px;}
+.ppos{font-size:10px;color:rgba(255,255,255,.85);margin-top:3px;line-height:1.3;}
+.pclose{background:rgba(255,255,255,.15);border:none;color:#fff;width:27px;height:27px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-left:auto;}
+.ptabs{display:flex;border-bottom:1px solid var(--mid);}
+.ptab{flex:1;padding:10px;text-align:center;font-size:12px;cursor:pointer;color:var(--grey);border-bottom:2px solid transparent;transition:all .15s;}
+.ptab.active{color:var(--red);border-bottom-color:var(--red);font-weight:600;}
+.pb{padding:12px 16px;}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--ltgrey);}
 .ir:last-child{border:none;}
 .il{font-size:11px;color:var(--grey);}
 .iv{font-size:11px;color:var(--blk);font-weight:500;text-align:right;}
 .iv.r{color:var(--red);}
+.grades-row{display:inline-flex;gap:6px;align-items:center;}
+.grade-chip{display:inline-flex;flex-direction:column;align-items:center;gap:1px;}
+.grade-yr{font-size:8px;color:var(--grey);}
+.grade-val{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+.g1{background:#C0392B;} .g2{background:#E67E22;} .g3{background:#F1C40F;color:#333!important;} .g4{background:#27AE60;} .g5{background:#2980B9;}
 
-/* ── Loading / Error ───────────────────────────────────────────────── */
-.center-msg{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:12px;color:var(--grey);}
-.spinner{width:36px;height:36px;border:3px solid var(--mid);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
+.lock-wrap{padding:24px 16px;text-align:center;}
+.lock-icon{font-size:34px;margin-bottom:10px;}
+.lock-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.lock-sub{font-size:11px;color:var(--grey);margin-bottom:14px;}
+.lock-row{display:flex;gap:8px;}
+.lock-input{flex:1;border:1px solid var(--mid);border-radius:6px;padding:8px 10px;font-size:13px;outline:none;}
+.lock-input:focus{border-color:var(--red);}
+.lock-btn{background:var(--red);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap;}
+.lock-err{color:var(--red);font-size:11px;margin-top:6px;}
+
+.center-msg{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:10px;color:var(--grey);}
+.spinner{width:32px;height:32px;border:3px solid var(--mid);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.err-icon{font-size:40px;}
-
-/* ── Search highlight ──────────────────────────────────────────────── */
-.card.highlighted{border-color:var(--red);box-shadow:0 0 0 2px rgba(218,31,38,.25);}
-.card.dimmed{opacity:.35;}
-
-/* ── Responsive ────────────────────────────────────────────────────── */
-@media(max-width:600px){
-  .topbar{padding:0 12px;height:48px;}
-  #treeWrap{padding:16px 8px;}
-  .logo-sub{display:none;}
-}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="logo">
     <div class="logo-box">OG</div>
-    <div>
-      <div class="logo-main">Ocean Glass</div>
-      <div class="logo-sub">โครงสร้างองค์กร</div>
-    </div>
+    <div><div class="logo-main">Ocean Glass</div><div class="logo-sub">โครงสร้างองค์กร</div></div>
   </div>
   <div class="search-wrap">
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <circle cx="5.5" cy="5.5" r="4" stroke="#bbb" stroke-width="1.3"/>
-      <line x1="8.5" y1="8.5" x2="11.5" y2="11.5" stroke="#bbb" stroke-width="1.3" stroke-linecap="round"/>
-    </svg>
-    <input id="searchInput" placeholder="ค้นหาชื่อ / ชื่ออังกฤษ / รหัส / ตำแหน่ง..." oninput="onSearch(this.value)"/>
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="#bbb" stroke-width="1.3"/><line x1="8.5" y1="8.5" x2="11.5" y2="11.5" stroke="#bbb" stroke-width="1.3" stroke-linecap="round"/></svg>
+    <input id="searchInput" placeholder="ค้นหาชื่อ / รหัส / ตำแหน่ง..." autocomplete="off" autocorrect="off" spellcheck="false"/>
   </div>
-  <div class="topbar-right">
-    <span class="badge" id="totalBadge">กำลังโหลด...</span>
-  </div>
+  <span class="badge" id="totalBadge">กำลังโหลด...</span>
 </div>
 
-<!-- LEGEND -->
+<div class="div-bar">
+  <div class="div-label">สายงาน :</div>
+  <div class="div-scroll" id="divScroll"></div>
+</div>
+
 <div class="legend">
   <div class="li"><div class="ldot" style="background:var(--red)"></div>MD / Executive Director</div>
   <div class="li"><div class="ldot" style="background:var(--blk)"></div>Department Manager</div>
@@ -176,11 +129,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--surface);color:var
   <div class="li"><div class="ldot" style="background:#C0C0C0"></div>Staff / Engineer</div>
 </div>
 
-<!-- TREE -->
 <div id="treeWrap">
   <div class="center-msg" id="loadingMsg">
-    <div class="spinner"></div>
-    <div>กำลังโหลดข้อมูล...</div>
+    <div class="spinner"></div><div>กำลังโหลดข้อมูล...</div>
   </div>
 </div>
 
@@ -196,7 +147,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--surface);color:var
       </div>
       <button class="pclose" onclick="closePopup()">✕</button>
     </div>
-    <div class="pb">
+    <div class="ptabs">
+      <div class="ptab active" id="tab1" onclick="switchTab(1)">ข้อมูลทั่วไป</div>
+      <div class="ptab" id="tab2" onclick="switchTab(2)">🔒 ข้อมูลบุคคล</div>
+    </div>
+    <div class="pb" id="tabContent1">
       <div class="ir"><span class="il">รหัสพนักงาน</span><span class="iv" id="pId">–</span></div>
       <div class="ir"><span class="il">ระดับ</span><span class="iv r" id="pLevel">–</span></div>
       <div class="ir"><span class="il">อายุตัว</span><span class="iv" id="pAge">–</span></div>
@@ -204,337 +159,355 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--surface);color:var
       <div class="ir"><span class="il">หน่วยงาน</span><span class="iv" id="pDept">–</span></div>
       <div class="ir"><span class="il">รายงานต่อ</span><span class="iv" id="pReports">–</span></div>
     </div>
+    <div id="tabContent2" style="display:none;">
+      <div class="lock-wrap" id="lockScreen">
+        <div class="lock-icon">🔐</div>
+        <div class="lock-title">ข้อมูลที่จำกัดการเข้าถึง</div>
+        <div class="lock-sub">กรอกรหัสพนักงานของคุณเพื่อดูข้อมูล</div>
+        <div class="lock-row">
+          <input class="lock-input" id="lockInput" type="tel" placeholder="รหัสพนักงาน..." autocomplete="off"/>
+          <button class="lock-btn" onclick="tryUnlock()">ยืนยัน</button>
+        </div>
+        <div class="lock-err" id="lockErr"></div>
+      </div>
+      <div class="pb" id="sensitiveContent" style="display:none;">
+        <div class="ir"><span class="il">การปรับตำแหน่งล่าสุด</span><span class="iv" id="sPA">–</span></div>
+        <div class="ir"><span class="il">การปรับเงินพิเศษล่าสุด</span><span class="iv" id="sSA">–</span></div>
+        <div class="ir"><span class="il">% Pay Point ล่าสุด</span><span class="iv" id="sPP">–</span></div>
+        <div class="ir">
+          <span class="il">เกรดประเมิน</span>
+          <div class="grades-row" id="sGrades"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-// ── Config ───────────────────────────────────────────────────────────────
 const EXCEL_URL = 'employees.xlsx';
 const PHOTO_DIR = 'photos/';
 
-// ── State ────────────────────────────────────────────────────────────────
-let employees = [];   // flat array
-let deptMap   = {};   // dept_id → dept object
-let empMap    = {};   // emp_id  → emp object
+// ── WHITELIST ─────────────────────────────────────────────────────────────
+// Format: 'emp_id': 'OGC-XXX' (division code) or 'ALL'
+// 'ALL' = เห็นทุกสายงาน | 'OGC-MFG' = เห็นเฉพาะ Manufacturing ฯลฯ
+const WHITELIST = {
+  '168001': 'ALL',      // MD - ธีรนี
+  '159029': 'ALL',      // Director Corporate Affairs - รักดี
+  '266049': 'ALL',      // DM HR - พงศ์กฤษณ์ (HR access)
+  '268029': 'OGC-MFG', // ED Manufacturing - วุฒิชัย
+  '168015': 'OGC-CCD', // ED CCD - อาณัติ
+  '160001': 'OGC-FAD', // Financial Controller - รังษิยา (FAD head)
+  '166006': 'OGC-MKT', // ED Marketing - ณัฐฉวินี
+  '159029': 'OGC-CHR', // Director CHR - รักดี
+};
 
-// ── Load Excel ───────────────────────────────────────────────────────────
-async function loadData() {
-  try {
-    const res  = await fetch(EXCEL_URL + '?v=' + Date.now());
-    if (!res.ok) throw new Error('ไม่พบไฟล์ ' + EXCEL_URL);
-    const buf  = await res.arrayBuffer();
-    const wb   = XLSX.read(buf, { type: 'array', cellDates: true });
+let employees=[],deptMap={},empMap={},childrenOf={};
+let activeDivision='ALL',unlockedAs=null,currentEmp=null;
 
-    // ── Departments sheet ─────────────────────────────────────────────
-    const dws  = wb.Sheets['Departments'];
-    const drows= XLSX.utils.sheet_to_json(dws, { defval: '' });
-    drows.forEach(r => {
-      const id = String(r['dept_id'] || '').trim();
-      if (!id) return;
-      deptMap[id] = {
-        id,
-        name:       String(r['dept_name']    || '').trim(),
-        name_en:    String(r['dept_name_en'] || '').trim(),
-        parent_id:  String(r['parent_dept_id'] || '').trim(),
-        level_order:Number(r['level_order']  || 0),
-        color:      String(r['color_hex']    || '').trim(),
-        children:   [],
-        emp_head:   null,
-      };
+// ── Load ──────────────────────────────────────────────────────────────────
+async function loadData(){
+  try{
+    const res=await fetch(EXCEL_URL+'?v='+Date.now());
+    if(!res.ok) throw new Error('ไม่พบไฟล์ '+EXCEL_URL);
+    const buf=await res.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array',cellDates:true});
+
+    // Departments
+    const drows=XLSX.utils.sheet_to_json(wb.Sheets['Departments'],{defval:''});
+    drows.forEach(r=>{
+      const id=String(r['dept_id']||'').trim();
+      if(!id)return;
+      deptMap[id]={id,name:String(r['dept_name']||'').trim(),
+        parent_id:String(r['parent_dept_id']||'').trim(),
+        level_order:Number(r['level_order']||0)};
     });
 
-    // ── Employees sheet ───────────────────────────────────────────────
-    const ews  = wb.Sheets['Employees'];
-    const erows= XLSX.utils.sheet_to_json(ews, { defval: '' });
-
-    erows.forEach(r => {
-      const id = String(r['emp_id'] || '').trim();
-      if (!id || id === 'emp_id') return;
-      const birth   = parseDate(r['birth_date']);
-      const start   = parseDate(r['start_date']);
-      const emp = {
-        id,
-        name_th:    String(r['name_th']    || '').trim(),
-        name_en:    String(r['name_en']    || '').trim(),
-        nickname:   String(r['nickname']   || '').trim(),
-        position:   String(r['position']   || '').trim(),
-        level:      String(r['level']      || '').trim(),
-        dept_id:    String(r['dept_id']    || '').trim(),
-        reports_to: String(r['reports_to'] || '').trim(),
-        photo:      String(r['photo_filename'] || '').trim(),
-        birth_date: birth,
-        start_date: start,
-        age:        birth  ? diffYears(birth,  new Date()) : null,
-        tenure:     start  ? diffYears(start,  new Date()) : null,
+    // Employees
+    const erows=XLSX.utils.sheet_to_json(wb.Sheets['Employees'],{defval:''});
+    erows.forEach(r=>{
+      const id=String(r['emp_id']||'').trim();
+      if(!id||id==='emp_id')return;
+      const birth=parseDate(r['birth_date']),start=parseDate(r['start_date']);
+      const emp={
+        id,name_th:sv(r['name_th']),name_en:sv(r['name_en']),nickname:sv(r['nickname']),
+        position:sv(r['position']),level:sv(r['level']),dept_id:sv(r['dept_id']),
+        reports_to:sv(r['reports_to']).replace(/\.0$/,''),
+        photo:sv(r['photo_filename']),birth_date:birth,start_date:start,
+        age:birth?diffY(birth,new Date()):null,tenure:start?diffY(start,new Date()):null,
+        last_pa:sv(r['last_pa_date']),last_sa:sv(r['last_sa_date']),
+        pay_point:sv(r['pay_point_pct']),
+        grade_2566:sv(r['grade_2566']),grade_2567:sv(r['grade_2567']),grade_2568:sv(r['grade_2568']),
       };
-      employees.push(emp);
-      empMap[id] = emp;
+      employees.push(emp); empMap[id]=emp;
     });
 
-    document.getElementById('totalBadge').textContent = employees.length + ' คน';
+    employees.forEach(e=>{
+      if(!e.reports_to)return;
+      if(!childrenOf[e.reports_to])childrenOf[e.reports_to]=[];
+      childrenOf[e.reports_to].push(e);
+    });
+
+    document.getElementById('totalBadge').textContent=employees.length+' คน';
+    buildDivFilter();
     buildTree();
-
-  } catch (e) {
-    document.getElementById('treeWrap').innerHTML =
-      `<div class="center-msg"><div class="err-icon">⚠️</div>
-       <div style="font-size:14px;color:var(--blk);">ไม่สามารถโหลดข้อมูลได้</div>
-       <div style="font-size:12px;">${e.message}</div>
-       <div style="font-size:11px;color:#bbb;">ตรวจสอบว่าไฟล์ data/employees.xlsx อยู่ในโฟลเดอร์ที่ถูกต้อง</div></div>`;
+  }catch(e){
+    document.getElementById('treeWrap').innerHTML=
+      `<div class="center-msg"><div style="font-size:32px;">⚠️</div>
+      <div style="font-size:14px;color:var(--blk);">ไม่สามารถโหลดข้อมูลได้</div>
+      <div style="font-size:12px;color:var(--grey);">${e.message}</div></div>`;
   }
 }
 
-// ── Date helpers ──────────────────────────────────────────────────────────
-function parseDate(v) {
-  if (!v) return null;
-  if (v instanceof Date) return isNaN(v) ? null : v;
-  const s = String(v).trim();
-  // DD/MM/YYYY
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) return new Date(+m[3], +m[2]-1, +m[1]);
-  const d = new Date(s);
-  return isNaN(d) ? null : d;
+function sv(x){return (x===null||x===undefined||String(x).trim()==='nan')?'':String(x).trim();}
+function parseDate(v){
+  if(!v)return null;
+  if(v instanceof Date)return isNaN(v)?null:v;
+  const s=String(v).trim();
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+  const d=new Date(s); return isNaN(d)?null:d;
 }
-function diffYears(a, b) {
-  let y = b.getFullYear() - a.getFullYear();
-  const m = b.getMonth() - a.getMonth();
-  if (m < 0 || (m === 0 && b.getDate() < a.getDate())) y--;
+function diffY(a,b){
+  let y=b.getFullYear()-a.getFullYear();
+  if(b.getMonth()<a.getMonth()||(b.getMonth()===a.getMonth()&&b.getDate()<a.getDate()))y--;
   return y;
 }
-function fmtAge(n) { return n !== null ? n + ' ปี' : '—'; }
-function fmtTenure(n) {
-  if (n === null) return '—';
-  return n < 1 ? '< 1 ปี' : n + ' ปีงาน';
-}
+function fmtAge(n){return n!==null?n+' ปี':'—';}
+function fmtTen(n){return n===null?'—':n<1?'< 1 ปี':n+' ปีงาน';}
 
-// ── Build Tree ────────────────────────────────────────────────────────────
-function buildTree() {
-  // Find root employee (no reports_to)
-  const root = employees.find(e => !e.reports_to || e.reports_to === '');
-  if (!root) {
-    document.getElementById('treeWrap').innerHTML =
-      `<div class="center-msg"><div class="err-icon">⚠️</div>
-       <div>ไม่พบ root employee (reports_to ว่าง)</div></div>`;
-    return;
-  }
-
-  // Build children map
-  const childrenOf = {};
-  employees.forEach(e => {
-    const pid = e.reports_to;
-    if (!pid) return;
-    if (!childrenOf[pid]) childrenOf[pid] = [];
-    childrenOf[pid].push(e);
+// ── Division filter ───────────────────────────────────────────────────────
+function buildDivFilter(){
+  const divs=Object.values(deptMap).filter(d=>d.parent_id==='OGC')
+    .sort((a,b)=>a.level_order-b.level_order);
+  const sc=document.getElementById('divScroll');
+  sc.innerHTML='';
+  const allBtn=document.createElement('button');
+  allBtn.className='div-btn active'; allBtn.textContent='ทั้งหมด';
+  allBtn.onclick=()=>setDiv('ALL'); sc.appendChild(allBtn);
+  divs.forEach(d=>{
+    const btn=document.createElement('button');
+    btn.className='div-btn'; btn.textContent=d.name; btn.dataset.div=d.id;
+    btn.onclick=()=>setDiv(d.id); sc.appendChild(btn);
   });
-
-  // Render
-  const wrap = document.getElementById('treeWrap');
-  wrap.innerHTML = '';
-  const container = document.createElement('div');
-  container.style.cssText = 'display:inline-block;min-width:100%;padding-bottom:32px;';
-  container.appendChild(renderNode(root, childrenOf, 0));
-  wrap.appendChild(container);
-
-  // Draw lines after DOM settles
-  setTimeout(drawAllLines, 80);
+}
+function setDiv(id){
+  activeDivision=id;
+  document.querySelectorAll('.div-btn').forEach(b=>
+    b.classList.toggle('active',(id==='ALL'&&!b.dataset.div)||b.dataset.div===id));
+  buildTree();
 }
 
-// ── Render a node + its subtree ───────────────────────────────────────────
-function renderNode(emp, childrenOf, depth) {
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'display:inline-flex;flex-direction:column;align-items:center;';
+// ── Tree ──────────────────────────────────────────────────────────────────
+function buildTree(){
+  const root=employees.find(e=>!e.reports_to||e.reports_to==='');
+  const wrap=document.getElementById('treeWrap');
+  if(!root){wrap.innerHTML='<div class="center-msg"><div>⚠️</div><div>ไม่พบ root employee</div></div>';return;}
 
-  // Card
-  const card = makeCard(emp, depth);
-  card.id = 'card-' + emp.id;
-  wrapper.appendChild(card);
+  wrap.innerHTML='';
+  const con=document.createElement('div');
+  con.style.cssText='display:inline-block;min-width:100%;padding-bottom:32px;';
 
-  // Children
-  const kids = (childrenOf[emp.id] || []);
-  if (kids.length === 0) return wrapper;
-
-  // Vertical down from card
-  const vDown = document.createElement('div');
-  vDown.className = 'v-connector';
-  vDown.dataset.from = emp.id;
-  vDown.style.cssText = 'width:1.5px;height:28px;background:var(--mid);margin:0 auto;';
-  wrapper.appendChild(vDown);
-
-  // Children row
-  const row = document.createElement('div');
-  row.className = 'children-row';
-  row.dataset.parent = emp.id;
-  row.style.cssText = 'display:flex;align-items:flex-start;position:relative;';
-
-  kids.forEach(child => {
-    const childWrap = document.createElement('div');
-    childWrap.style.cssText = 'display:inline-flex;flex-direction:column;align-items:center;';
-
-    // Vertical up into horizontal bar
-    const vUp = document.createElement('div');
-    vUp.style.cssText = 'width:1.5px;height:20px;background:var(--mid);margin:0 auto;';
-    childWrap.appendChild(vUp);
-    childWrap.appendChild(renderNode(child, childrenOf, depth + 1));
-    row.appendChild(childWrap);
-  });
-
-  // Horizontal bar overlay (drawn in JS after layout)
-  wrapper.appendChild(row);
-  return wrapper;
-}
-
-// ── Draw horizontal connector bars ────────────────────────────────────────
-function drawAllLines() {
-  document.querySelectorAll('.children-row').forEach(row => {
-    const children = row.querySelectorAll(':scope > div');
-    if (children.length < 2) return;
-
-    const rowRect = row.getBoundingClientRect();
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-
-    // Top of each child's v-up stub = first child element top
-    const lefts  = [];
-    const rights  = [];
-    children.forEach(c => {
-      const r = c.getBoundingClientRect();
-      const mid = r.left + r.width / 2 + scrollX - (row.getBoundingClientRect().left + scrollX);
-      lefts.push(mid);
+  if(activeDivision==='ALL'){
+    con.appendChild(renderNode(root,0,null));
+  } else {
+    const all=employees.filter(e=>inDiv(e.dept_id,activeDivision));
+    const heads=all.filter(e=>{
+      if(!e.reports_to)return true;
+      const boss=empMap[e.reports_to];
+      return !boss||!all.includes(boss);
     });
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;justify-content:center;';
+    heads.forEach(h=>row.appendChild(renderNode(h,0,all)));
+    con.appendChild(row);
+  }
+  wrap.appendChild(con);
+  setTimeout(drawLines,80);
+}
 
-    const minX = Math.min(...lefts);
-    const maxX = Math.max(...lefts);
-    const y    = 20; // height of vUp stub
+function inDiv(deptId,divId){
+  if(!deptId)return false;
+  if(deptId===divId||deptId.startsWith(divId+'-'))return true;
+  let d=deptMap[deptId];
+  while(d){if(d.id===divId)return true;d=deptMap[d.parent_id];}
+  return false;
+}
 
-    // Draw SVG bar
-    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.style.cssText = `position:absolute;top:0;left:0;width:${row.offsetWidth}px;height:${y}px;pointer-events:none;overflow:visible;`;
-    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1', minX);
-    line.setAttribute('x2', maxX);
-    line.setAttribute('y1', y);
-    line.setAttribute('y2', y);
-    line.setAttribute('stroke','#E4E4E4');
-    line.setAttribute('stroke-width','1.5');
+function renderNode(emp,depth,allowed){
+  const w=document.createElement('div');
+  w.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
+  const card=makeCard(emp,depth); card.id='card-'+emp.id; w.appendChild(card);
+  const kids=(childrenOf[emp.id]||[]).filter(k=>!allowed||allowed.includes(k));
+  if(!kids.length)return w;
+  const vs=document.createElement('div');
+  vs.style.cssText='width:1.5px;height:22px;background:var(--mid);margin:0 auto;';
+  w.appendChild(vs);
+  const row=document.createElement('div');
+  row.className='children-row'; row.dataset.parent=emp.id;
+  row.style.cssText='display:flex;align-items:flex-start;position:relative;';
+  kids.forEach(child=>{
+    const cw=document.createElement('div');
+    cw.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
+    const vu=document.createElement('div');
+    vu.style.cssText='width:1.5px;height:16px;background:var(--mid);margin:0 auto;';
+    cw.appendChild(vu); cw.appendChild(renderNode(child,depth+1,allowed));
+    row.appendChild(cw);
+  });
+  w.appendChild(row); return w;
+}
+
+function drawLines(){
+  document.querySelectorAll('.children-row').forEach(row=>{
+    const kids=row.querySelectorAll(':scope > div');
+    if(kids.length<2)return;
+    const rr=row.getBoundingClientRect();
+    const xs=Array.from(kids).map(c=>{const r=c.getBoundingClientRect();return r.left+r.width/2-rr.left;});
+    const y=16;
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.style.cssText=`position:absolute;top:0;left:0;width:${row.offsetWidth}px;height:${y}px;pointer-events:none;overflow:visible;`;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',Math.min(...xs));line.setAttribute('x2',Math.max(...xs));
+    line.setAttribute('y1',y);line.setAttribute('y2',y);
+    line.setAttribute('stroke','#E4E4E4');line.setAttribute('stroke-width','1.5');
     svg.appendChild(line);
-    row.style.position = 'relative';
-    row.insertBefore(svg, row.firstChild);
+    row.style.position='relative';
+    row.insertBefore(svg,row.firstChild);
   });
 }
 
-// ── Make card DOM ─────────────────────────────────────────────────────────
-function makeCard(emp, depth) {
-  const accClass = depth === 0 ? 'acc-red'
-                 : depth === 1 ? 'acc-red'
-                 : depth === 2 ? 'acc-dark'
-                 : depth === 3 ? 'acc-grey'
-                 : 'acc-light';
-
-  const card = document.createElement('div');
-  card.className = 'card ' + accClass;
-  card.onclick = () => showPopup(emp);
-
-  // Avatar
-  const avHTML = emp.photo
-    ? `<div class="av"><img src="${PHOTO_DIR}${emp.photo}" alt="${emp.nickname || ''}" onerror="this.parentElement.textContent='${avatarInitials(emp)}'"/></div>`
-    : `<div class="av">${avatarInitials(emp)}</div>`;
-
-  card.innerHTML = `
-    <div class="card-accent"></div>
-    <div class="card-body">
-      <div class="av-row">
-        ${avHTML}
-        <div class="av-info">
-          <div class="cid">#${emp.id}</div>
-          <div class="cnm">${emp.name_th}</div>
-          <div class="cen">${emp.name_en || '—'}</div>
-        </div>
+// ── Card ──────────────────────────────────────────────────────────────────
+function makeCard(emp,depth){
+  const acc=depth<=1?'acc-red':depth===2?'acc-dark':depth===3?'acc-grey':'acc-light';
+  const card=document.createElement('div');
+  card.className='card '+acc; card.onclick=()=>showPopup(emp);
+  const avHTML=emp.photo
+    ?`<div class="av"><img src="${PHOTO_DIR}${emp.photo}" alt="" onerror="this.parentElement.textContent='${avInit(emp)}'"/></div>`
+    :`<div class="av">${avInit(emp)}</div>`;
+  card.innerHTML=`<div class="card-accent"></div><div class="card-body">
+    <div class="av-row">${avHTML}<div class="av-info">
+      <div class="cid">#${emp.id}</div>
+      <div class="cnm">${emp.name_th}</div>
+      <div class="cen">${emp.name_en||'—'}</div>
+    </div></div>
+    <div class="cpos">${emp.position}</div>
+    <div class="card-footer">
+      <span class="lvpill">${emp.level||'—'}</span>
+      <div class="stats-row">
+        <div class="pill">${fmtAge(emp.age)}</div>
+        <div class="pill">${fmtTen(emp.tenure)}</div>
       </div>
-      <div class="cpos">${emp.position}</div>
-      <div class="card-footer">
-        <span class="lvpill">${emp.level || '—'}</span>
-        <div class="stats-row">
-          <div class="pill">${fmtAge(emp.age)}</div>
-          <div class="pill">${fmtTenure(emp.tenure)}</div>
-        </div>
-      </div>
-    </div>`;
+    </div></div>`;
   return card;
 }
-
-function avatarInitials(emp) {
-  if (emp.nickname) return emp.nickname;
-  const parts = emp.name_th.trim().split(/\s+/);
-  return parts.length >= 2 ? parts[0].slice(0,1) + parts[1].slice(0,1) : emp.name_th.slice(0,2);
-}
+function avInit(e){if(e.nickname)return e.nickname;const p=e.name_th.trim().split(/\s+/);return p.length>=2?p[0][0]+p[1][0]:e.name_th.slice(0,2);}
 
 // ── Popup ─────────────────────────────────────────────────────────────────
-function showPopup(emp) {
-  // Avatar
-  const avEl = document.getElementById('pAv');
-  if (emp.photo) {
-    avEl.innerHTML = `<img src="${PHOTO_DIR}${emp.photo}" alt="" onerror="this.parentElement.textContent='${avatarInitials(emp)}'"/>`;
-  } else {
-    avEl.textContent = avatarInitials(emp);
-  }
-
-  // Reports-to name
-  const boss = empMap[emp.reports_to];
-  const bossStr = boss ? `${boss.name_th} (#${boss.id})` : '—';
-
-  // Dept name
-  const dept = deptMap[emp.dept_id];
-  const deptStr = dept ? dept.name : (emp.dept_id || '—');
-
-  document.getElementById('pName').textContent    = emp.name_th;
-  document.getElementById('pNameEn').textContent  = emp.name_en || '—';
-  document.getElementById('pPos').textContent     = emp.position;
-  document.getElementById('pId').textContent      = '#' + emp.id;
-  document.getElementById('pLevel').textContent   = emp.level || '—';
-  document.getElementById('pAge').textContent     = fmtAge(emp.age);
-  document.getElementById('pTenure').textContent  = emp.tenure !== null ? emp.tenure + ' ปี' : '—';
-  document.getElementById('pDept').textContent    = deptStr;
-  document.getElementById('pReports').textContent = bossStr;
-
+function showPopup(emp){
+  currentEmp=emp;
+  const avEl=document.getElementById('pAv');
+  if(emp.photo){avEl.innerHTML=`<img src="${PHOTO_DIR}${emp.photo}" alt="" onerror="this.parentElement.textContent='${avInit(emp)}'"/>`;}
+  else{avEl.textContent=avInit(emp);}
+  const boss=empMap[emp.reports_to];
+  document.getElementById('pName').textContent=emp.name_th;
+  document.getElementById('pNameEn').textContent=emp.name_en||'—';
+  document.getElementById('pPos').textContent=emp.position;
+  document.getElementById('pId').textContent='#'+emp.id;
+  document.getElementById('pLevel').textContent=emp.level||'—';
+  document.getElementById('pAge').textContent=fmtAge(emp.age);
+  document.getElementById('pTenure').textContent=emp.tenure!==null?emp.tenure+' ปี':'—';
+  const dept=deptMap[emp.dept_id];
+  document.getElementById('pDept').textContent=dept?dept.name:(emp.dept_id||'—');
+  document.getElementById('pReports').textContent=boss?`${boss.name_th} (#${boss.id})`:'—';
+  switchTab(1);
+  // Auto-unlock if already verified and has access
+  if(unlockedAs){
+    const acc=WHITELIST[unlockedAs];
+    const ed=getEmpDiv(emp);
+    if(acc==='ALL'||!ed||ed===acc){showSensitive(emp);}
+    else{resetLock();}
+  } else {resetLock();}
   document.getElementById('overlay').classList.add('on');
 }
-function closePopup() { document.getElementById('overlay').classList.remove('on'); }
-function closeIfOut(e) { if (e.target === document.getElementById('overlay')) closePopup(); }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
 
-// ── Search ────────────────────────────────────────────────────────────────
-let searchTimer;
-function onSearch(v) {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => applySearch(v.trim().toLowerCase()), 160);
+function getEmpDiv(emp){
+  let d=deptMap[emp.dept_id];
+  while(d){if(d.parent_id==='OGC')return d.id;d=deptMap[d.parent_id];}
+  return null;
 }
-function applySearch(q) {
-  const cards = document.querySelectorAll('.card');
-  if (!q) { cards.forEach(c => c.classList.remove('highlighted','dimmed')); return; }
 
-  const matches = new Set(
-    employees
-      .filter(e =>
-        e.name_th.toLowerCase().includes(q) ||
-        e.name_en.toLowerCase().includes(q) ||
-        e.id.includes(q) ||
-        e.position.toLowerCase().includes(q) ||
-        (e.nickname && e.nickname.toLowerCase().includes(q))
-      )
-      .map(e => 'card-' + e.id)
-  );
+function closePopup(){document.getElementById('overlay').classList.remove('on');}
+function closeIfOut(e){if(e.target===document.getElementById('overlay'))closePopup();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePopup();});
 
-  cards.forEach(c => {
-    if (matches.has(c.id)) {
-      c.classList.add('highlighted');
-      c.classList.remove('dimmed');
-    } else {
-      c.classList.add('dimmed');
-      c.classList.remove('highlighted');
-    }
+function switchTab(n){
+  [1,2].forEach(i=>{
+    document.getElementById('tab'+i).classList.toggle('active',i===n);
+    document.getElementById('tabContent'+i).style.display=i===n?'':'none';
   });
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
+// ── Lock ──────────────────────────────────────────────────────────────────
+function resetLock(){
+  document.getElementById('lockScreen').style.display='';
+  document.getElementById('sensitiveContent').style.display='none';
+  document.getElementById('lockInput').value='';
+  document.getElementById('lockErr').textContent='';
+}
+
+function tryUnlock(){
+  const id=document.getElementById('lockInput').value.trim();
+  const err=document.getElementById('lockErr');
+  if(!id){err.textContent='กรุณากรอกรหัสพนักงาน';return;}
+  if(!WHITELIST[id]){err.textContent='รหัสนี้ไม่มีสิทธิ์เข้าถึงข้อมูลบุคคล';return;}
+  const acc=WHITELIST[id];
+  const ed=getEmpDiv(currentEmp);
+  if(acc!=='ALL'&&ed&&ed!==acc){err.textContent='คุณมีสิทธิ์เฉพาะสายงานของตัวเองเท่านั้น';return;}
+  unlockedAs=id; showSensitive(currentEmp);
+}
+
+function showSensitive(emp){
+  document.getElementById('lockScreen').style.display='none';
+  document.getElementById('sensitiveContent').style.display='';
+  document.getElementById('sPA').textContent=emp.last_pa||'—';
+  document.getElementById('sSA').textContent=emp.last_sa||'—';
+  document.getElementById('sPP').textContent=emp.pay_point?emp.pay_point+'%':'—';
+  const gc=document.getElementById('sGrades');
+  gc.innerHTML='';
+  [['2566',emp.grade_2566],['2567',emp.grade_2567],['2568',emp.grade_2568]].forEach(([yr,g])=>{
+    const chip=document.createElement('div'); chip.className='grade-chip';
+    const yr_el=document.createElement('div'); yr_el.className='grade-yr'; yr_el.textContent=yr;
+    const val=document.createElement('div'); val.className='grade-val'+(g?` g${g}`:'');
+    val.style.background=g?'':'#ccc'; val.textContent=g||'—';
+    chip.appendChild(yr_el); chip.appendChild(val); gc.appendChild(chip);
+  });
+}
+
+// ── Search (mobile-fixed) ─────────────────────────────────────────────────
+let stimer;
+const si=document.getElementById('searchInput');
+function doSearch(){
+  clearTimeout(stimer);
+  stimer=setTimeout(()=>{
+    const q=si.value.trim().toLowerCase();
+    const cards=document.querySelectorAll('.card');
+    if(!q){cards.forEach(c=>c.classList.remove('highlighted','dimmed'));return;}
+    const matched=new Set(employees.filter(e=>
+      e.name_th.toLowerCase().includes(q)||e.name_en.toLowerCase().includes(q)||
+      e.id.includes(q)||e.position.toLowerCase().includes(q)||
+      (e.nickname&&e.nickname.toLowerCase().includes(q))
+    ).map(e=>'card-'+e.id));
+    cards.forEach(c=>{
+      if(matched.has(c.id)){c.classList.add('highlighted');c.classList.remove('dimmed');}
+      else{c.classList.add('dimmed');c.classList.remove('highlighted');}
+    });
+    const first=document.querySelector('.card.highlighted');
+    if(first)first.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});
+  },200);
+}
+si.addEventListener('input',doSearch);
+si.addEventListener('keyup',doSearch);
+si.addEventListener('compositionend',doSearch);
+
 loadData();
 </script>
 </body>
