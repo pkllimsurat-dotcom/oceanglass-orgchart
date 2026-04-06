@@ -18,7 +18,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sw:focus-within{border-color:var(--red);background:var(--wh);}
 #si{background:none;border:none;outline:none;font-size:13px;color:var(--blk);width:100%;}
 #si::placeholder{color:#bbb;}
-.bdb{background:var(--rl);color:var(--red);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;margin-left:auto;flex-shrink:0;}
+.bdb{background:var(--rl);color:var(--red);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;margin-left:auto;flex-shrink:0;text-align:right;line-height:1.4;}
 
 .dvb{padding:7px 14px;background:var(--wh);border-bottom:1px solid var(--mid);display:flex;align-items:center;gap:8px;}
 .dvl{font-size:11px;color:var(--gy);flex-shrink:0;}
@@ -33,7 +33,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 
 #tw{padding:20px 14px 60px;overflow:auto;}
 
-/* Card */
 .card{background:var(--wh);border:1px solid var(--mid);border-radius:8px;display:flex;flex-direction:row;align-items:stretch;cursor:pointer;width:160px;margin:0 5px;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:box-shadow .15s,border-color .15s;overflow:hidden;flex-shrink:0;position:relative;}
 .card:active{opacity:.85;}
 .card:hover{box-shadow:0 3px 14px rgba(218,31,38,.12);border-color:#DA1F2660;}
@@ -43,10 +42,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .ar{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
 .ai{min-width:0;flex:1;}
-/* ข้อ 7: ซ่อน emp_id บน card */
 .cn{font-size:10px;font-weight:600;color:var(--blk);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.nk{font-size:8.5px;color:var(--gy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ce{font-size:8.5px;color:var(--gy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nk{font-size:8.5px;color:var(--gy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:11px;}
 .cp{font-size:8.5px;color:var(--gy);line-height:1.3;}
 .cf{display:flex;align-items:center;justify-content:space-between;margin-top:3px;padding-top:3px;border-top:1px solid var(--lg);}
 .lp{border-radius:3px;padding:1px 5px;font-size:7.5px;font-weight:700;}
@@ -59,18 +56,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .g .ca{background:var(--gy);} .g .av{background:#F5F5F5;color:var(--gy);} .g .lp{background:var(--gy);color:#fff;}
 .l .ca{background:#C0C0C0;} .l .av{background:#F8F8F8;color:#999;} .l .lp{background:#C0C0C0;color:#fff;}
 
-/* Expand button */
 .xbtn{display:flex;align-items:center;justify-content:center;width:18px;height:18px;min-width:18px;border-radius:50%;background:var(--mid);border:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--gy);transition:all .15s;margin-left:3px;flex-shrink:0;}
 .xbtn:hover{background:var(--red);color:#fff;}
 
 .card.hl{border-color:var(--red)!important;box-shadow:0 0 0 2px rgba(218,31,38,.3)!important;}
 .card.dm{opacity:.2;pointer-events:none;}
 .cr{display:flex;align-items:flex-start;position:relative;}
-
-/* Connector lines */
 .vline{width:1.5px;background:var(--mid);margin:0 auto;}
 
-/* Popup */
 .ov{display:none;position:fixed;inset:0;background:rgba(26,26,26,.45);z-index:200;align-items:center;justify-content:center;padding:14px;}
 .ov.on{display:flex;}
 .pp{background:var(--wh);border-radius:12px;width:100%;max-width:360px;max-height:92vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);}
@@ -88,7 +81,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .ir{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--lg);}
 .ir:last-child{border:none;}
 .il{font-size:11px;color:var(--gy);}
-.iv{font-size:11px;color:var(--blk);font-weight:500;text-align:right;}
+.iv{font-size:11px;color:var(--blk);font-weight:500;text-align:right;max-width:55%;}
 .iv.r{color:var(--red);}
 .kpb{display:inline-block;background:#E67E22;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
 .gc{display:inline-flex;gap:8px;}
@@ -97,7 +90,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .gvl{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
 .g1{background:#C0392B;} .g2{background:#E67E22;} .g3{background:#F1C40F;color:#333!important;} .g4{background:#27AE60;} .g5{background:#2980B9;} .g0{background:#ccc;color:#666!important;font-size:8px!important;}
 
-/* Lock */
 .lkw{padding:22px 16px;text-align:center;}
 .lkt{font-size:14px;font-weight:600;margin-bottom:4px;}
 .lks2{font-size:11px;color:var(--gy);margin-bottom:14px;}
@@ -115,12 +107,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 <body>
 
 <div class="tb">
-  <div class="logo"><div class="lb">OG</div><div><div class="lm">Ocean Glass</div><div class="ls">โครงสร้างองค์กร</div></div></div>
+  <div class="logo"><div class="lb">OG</div><div><div class="lm">Ocean Glass</div><div class="ls" id="ls">โครงสร้างองค์กร</div></div></div>
   <div class="sw">
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="#bbb" stroke-width="1.3"/><line x1="8.5" y1="8.5" x2="11.5" y2="11.5" stroke="#bbb" stroke-width="1.3" stroke-linecap="round"/></svg>
     <input id="si" placeholder="ค้นหาชื่อ / ตำแหน่ง..." autocomplete="off" autocorrect="off" spellcheck="false"/>
   </div>
-  <span class="bdb" id="bc">กำลังโหลด...</span>
+  <div class="bdb" id="bc">กำลังโหลด...</div>
 </div>
 
 <div class="dvb"><div class="dvl">สายงาน :</div><div class="dvs" id="dvs"></div></div>
@@ -138,11 +130,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
   <div class="pp">
     <div class="ph">
       <div class="pav" id="pav"></div>
-      <div style="min-width:0;flex:1;">
-        <div class="pnm" id="pnm"></div>
-        <div class="pne" id="pne"></div>
-        <div class="pps" id="pps"></div>
-      </div>
+      <div style="min-width:0;flex:1;"><div class="pnm" id="pnm"></div><div class="pne" id="pne"></div><div class="pps" id="pps"></div></div>
       <button class="pcl" onclick="cpop()">✕</button>
     </div>
     <div class="pts">
@@ -179,105 +167,154 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════════════
-// CONFIG — แก้ไขได้ที่นี่
-// ═══════════════════════════════════════════════════════════════════════════
-const XL='employees.xlsx';
+// ═══════════════════════════ CONFIG ════════════════════════════════════════
+const XL = 'employees.xlsx';
 
-// Path รูปพนักงาน — แก้ตรงนี้ถ้ารูปอยู่ใน folder อื่น
-// ตัวอย่าง: 'photos/' หรือ 'images/' หรือ '' (root)
-const PH='photos/';
+// รูปพนักงาน: ลองหลาย path อัตโนมัติ (รองรับทั้ง root และ photos/)
+// ไฟล์รองรับ .jpg .jpeg .png ทั้งหมด
+const PHOTO_PATHS = ['', 'photos/'];  // ลองตามลำดับ
 
-// WHITELIST: รหัสพนักงาน → สายงานที่เห็น ('ALL' = ทุกสายงาน)
-const WL={
-  '168001':'ALL',      // ธีรนี — MD
-  '159029':'ALL',      // รักดี — Director Corporate Affairs & HR
-  '266049':'ALL',      // พงศ์กฤษณ์ — DM HR
-  '268029':'OGC-MFG', // วุฒิชัย — ED Manufacturing
-  '168015':'OGC-CCD', // อาณัติ — ED CCD
-  '160001':'OGC-FAD', // รังษิยา — Financial Controller
-  '166006':'OGC-MKT', // ณัฐฉวินี — ED Marketing
-  // เพิ่มสิทธิ์ใหม่ที่นี่: 'รหัส':'OGC-XXX' หรือ 'ALL'
+// WHITELIST: รหัสพนักงาน → สายงาน ('ALL' = ทุกสาย)
+const WL = {
+  '168001': 'ALL',      // ธีรนี — MD
+  '159029': 'ALL',      // รักดี — Director CHR & HR
+  '266049': 'ALL',      // พงศ์กฤษณ์ — DM HR
+  '268029': 'OGC-MFG', // วุฒิชัย — ED Manufacturing
+  '168015': 'OGC-CCD', // อาณัติ — ED CCD
+  '166006': 'OGC-MKT', // ณัฐฉวินี — ED Marketing
+  // รังษิยา 160001 ถูกลบออกตาม V2.docx ข้อ 1
 };
 
-// Default collapse: ซ่อน node ที่ลึกกว่า depth นี้ (0=MD,1=ED,2=DM,3=SM,4+=Staff)
-// ข้อ 7 ปรับ: default แสดงแค่ ED (depth 1) ทุกอย่างใต้นั้น collapse
-const COLLAPSE_AT=1;
-
+// Default: collapse nodes ที่ลึกกว่า depth นี้ (1=ซ่อนทุกอย่างใต้ ED)
+const COLLAPSE_AT = 1;
 // ═══════════════════════════════════════════════════════════════════════════
-let emps=[],dm={},em={},co={};
-let adiv='ALL',ulas=null,cemp=null;
 
-// ── Load ──────────────────────────────────────────────────────────────────
+let emps=[],dm={},em={},co={};
+let adiv='ALL', ulas=null, cemp=null;
+const TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const PHOTO_CACHE = {}; // cache resolved photo path per emp_id
+
 async function init(){
   try{
-    const r=await fetch(XL+'?v='+Date.now());
-    if(!r.ok)throw new Error('ไม่พบไฟล์ '+XL);
-    const wb=XLSX.read(await r.arrayBuffer(),{type:'array',cellDates:true});
+    const res=await fetch(XL+'?v='+Date.now());
+    if(!res.ok)throw new Error('ไม่พบไฟล์ '+XL);
+    const wb=XLSX.read(await res.arrayBuffer(),{type:'array',cellDates:true});
+
+    // ── Read as_of_date from row 1 of Employees ──────────────────────────
+    const ws=wb.Sheets['Employees'];
+    const r1=XLSX.utils.sheet_to_json(ws,{header:1,defval:''})[0];
+    const asOfRaw=String(r1[0]||'');
+    const asOfMatch=asOfRaw.match(/as_of_date=(.+)/);
+    if(asOfMatch){
+      document.getElementById('ls').textContent='โครงสร้างองค์กร';
+      document.getElementById('bc').innerHTML=
+        `<span style="font-size:9px;line-height:1.3">ข้อมูลพนักงาน<br>ณ วันที่ ${asOfMatch[1].trim()}</span>`;
+    }
+
+    // ── Departments ───────────────────────────────────────────────────────
     XLSX.utils.sheet_to_json(wb.Sheets['Departments'],{defval:''}).forEach(r=>{
       const id=sv(r.dept_id);if(!id)return;
       dm[id]={id,name:sv(r.dept_name),pid:sv(r.parent_dept_id),lo:+sv(r.level_order)||0};
     });
-    XLSX.utils.sheet_to_json(wb.Sheets['Employees'],{defval:''}).forEach(r=>{
+
+    // ── Employees (header row 2, skip row 1 = as_of) ─────────────────────
+    const erows=XLSX.utils.sheet_to_json(ws,{defval:'',range:1});
+    erows.forEach(r=>{
       const id=sv(r.emp_id);if(!id||id==='emp_id')return;
-      const bd=pd(r.birth_date),sd=pd(r.start_date);
-      const e={id,nth:sv(r.name_th),nen:sv(r.name_en),nk:sv(r.nickname),
-        pos:sv(r.position),lv:sv(r.level),did:sv(r.dept_id),
+      const bd=pd(r.birth_date), sd=pd(r.start_date);
+      const e={
+        id, nth:sv(r.name_th), nen:sv(r.name_en), nk:sv(r.nickname),
+        pos:sv(r.position), lv:sv(r.level), did:sv(r.dept_id),
         rep:sv(r.reports_to).replace(/\.0$/,''),
-        ph:sv(r.photo_filename),bd,sd,
-        age:bd?decAge(bd):null,ten:sd?decAge(sd):null,
+        photo:sv(r.photo_filename), bd, sd,
+        age:bd?decY(bd):null, ten:sd?decY(sd):null,
         ex1:sv(r.extra_1),
-        pa:sv(r.last_pa_date),sa:sv(r.last_sa_date),pp:sv(r.pay_point_pct),
-        g68:sv(r.grade_2568),g67:sv(r.grade_2567),g66:sv(r.grade_2566),
+        pa:sv(r.last_pa_date), sa:sv(r.last_sa_date),
+        pp:sv(r.pay_point_pct),
+        g68:sv(r.grade_2568), g67:sv(r.grade_2567), g66:sv(r.grade_2566),
       };
-      emps.push(e);em[id]=e;
+      emps.push(e); em[id]=e;
     });
+
     emps.forEach(e=>{if(!e.rep)return;if(!co[e.rep])co[e.rep]=[];co[e.rep].push(e);});
-    document.getElementById('bc').textContent=emps.length+' คน';
-    bdf();bt();
+
+    const total=emps.length;
+    if(!asOfMatch) document.getElementById('bc').textContent=total+' คน';
+    else document.getElementById('bc').innerHTML+=`<br><span style="font-size:10px;font-weight:600">${total} คน</span>`;
+
+    bdf(); bt();
   }catch(ex){
-    document.getElementById('tw').innerHTML=`<div class="cm"><div style="font-size:28px">⚠️</div><div style="font-size:13px;color:var(--blk)">${ex.message}</div></div>`;
+    document.getElementById('tw').innerHTML=
+      `<div class="cm"><div style="font-size:28px">⚠️</div><div style="font-size:13px;color:var(--blk)">${ex.message}</div></div>`;
   }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 function sv(x){
-  if(x===null||x===undefined)return '';
-  if(typeof x==='number'&&isNaN(x))return '';
+  if(x===null||x===undefined)return'';
+  if(typeof x==='number'&&isNaN(x))return'';
   const s=String(x).trim();
   return(s==='nan'||s==='NaT'||s==='<NA>')?'':s;
 }
+
+// Parse DD/MM/YYYY string (from Excel)
 function pd(v){
-  if(!v)return null;if(v instanceof Date)return isNaN(v)?null:v;
-  const s=sv(v);if(!s||s==='-')return null;
+  if(!v)return null;
+  if(v instanceof Date)return isNaN(v)?null:v;
+  const s=sv(v); if(!s||s==='-')return null;
   const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if(m)return new Date(+m[3],+m[2]-1,+m[1]);
-  const d=new Date(s);return isNaN(d)?null:d;
+  const d=new Date(s); return isNaN(d)?null:d;
 }
-// ข้อ 2: decimal age
-function decAge(from){
-  return (new Date()-from)/(365.25*24*3600*1000);
-}
-function fa(n){return n!==null?n.toFixed(2)+' ปี':'—';}   // decimal
-function ft(n){return n===null?'—':n.toFixed(2)+' ปี';}   // decimal
 
-// ข้อ 1: format date as dd/ดดด/ปปปป (Thai month abbr)
-const TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function decY(from){return(new Date()-from)/(365.25*24*3600*1000);}
+function fa(n){return n!==null?n.toFixed(2)+' ปี':'—';}
+function ft(n){return n===null?'—':n.toFixed(2)+' ปี';}
+
+// ข้อ 3: format DD ดดด ปปปป (พ.ศ.)
 function fdt(s){
-  if(!s||s==='-'||s==='—')return '—';
-  // Try parse dd/mm/yyyy
+  if(!s||s==='-'||s==='—'||s==='n/a')return'—';
   const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if(m){const [,d,mo,y]=m;return d+'/'+TH_MON[+mo-1]+'/'+ y;}
-  // Try parse as Date
-  const dt=new Date(s);if(!isNaN(dt))return dt.getDate()+'/'+TH_MON[dt.getMonth()]+'/'+dt.getFullYear();
+  if(m){
+    const d=m[1].padStart(2,'0');
+    const mo=TH_MON[+m[2]-1];
+    const yy=+m[3]+543; // แปลงเป็น พ.ศ.
+    return `${d} ${mo} ${yy}`;
+  }
   return s;
+}
+
+// ── Photo: try .jpg then .png then fallback ────────────────────────────────
+function resolvePhoto(e){
+  if(!e.photo)return null;
+  // photo_filename may or may not have extension
+  const base=e.photo.replace(/\.(jpg|jpeg|png|webp)$/i,'');
+  const exts=['jpg','jpeg','png'];
+  // Try each path + ext combo; return first that loads
+  // We'll build img with onerror chain
+  return {base, exts, paths:PHOTO_PATHS};
+}
+
+function makeAvHTML(e,size='32px',cls='av'){
+  const rp=resolvePhoto(e);
+  if(!rp)return `<div class="${cls}">${ai(e)}</div>`;
+  const id='ph_'+e.id+'_'+size.replace('px','');
+  // Build img that tries paths in order: root/file.jpg, root/file.png, photos/file.jpg, photos/file.png
+  const tries=[];
+  for(const p of rp.paths) for(const ext of rp.exts) tries.push(p+rp.base+'.'+ext);
+  const chain=tries.map((src,i)=>
+    i<tries.length-1?`onerror="this.src='${tries[i+1]}'"`:
+    `onerror="this.parentElement.innerHTML='${ai(e)}'"`
+  ).join(' ');
+  // just use first src, chain onerror
+  return `<div class="${cls}" style="width:${size};height:${size}"><img src="${tries[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" ${tries.length>1?`onerror="this.src='${tries[1]}'"`:'onerror="this.parentElement.innerHTML=\''+ai(e)+'\'"'}/></div>`;
 }
 
 // ── Division filter ───────────────────────────────────────────────────────
 function bdf(){
   const ds=Object.values(dm).filter(d=>d.pid==='OGC').sort((a,b)=>a.lo-b.lo);
-  const sc=document.getElementById('dvs');sc.innerHTML='';
-  const ab=mk('button','dvb2 on','ทั้งหมด');ab.onclick=()=>sd2('ALL');sc.appendChild(ab);
+  const sc=document.getElementById('dvs'); sc.innerHTML='';
+  const ab=mk('button','dvb2 on','ทั้งหมด'); ab.onclick=()=>sd2('ALL'); sc.appendChild(ab);
   ds.forEach(d=>{const b=mk('button','dvb2',d.name);b.dataset.dv=d.id;b.onclick=()=>sd2(d.id);sc.appendChild(b);});
 }
 function sd2(id){
@@ -292,13 +329,13 @@ function bt(){
   const tw=document.getElementById('tw');
   if(!root){tw.innerHTML='<div class="cm"><div>⚠️ ไม่พบ root employee</div></div>';return;}
   tw.innerHTML='';
-  const con=mk('div','');con.style.cssText='display:inline-block;min-width:100%;padding-bottom:32px;';
+  const con=mk('div'); con.style.cssText='display:inline-block;min-width:100%;padding-bottom:32px;';
   if(adiv==='ALL'){
     con.appendChild(rn(root,0,null));
   }else{
     const all=emps.filter(e=>ind(e.did,adiv));
     const heads=all.filter(e=>{if(!e.rep)return true;const b=em[e.rep];return!b||!all.includes(b);});
-    const row=mk('div','');row.style.cssText='display:flex;justify-content:center;';
+    const row=mk('div'); row.style.cssText='display:flex;justify-content:center;';
     heads.forEach(h=>row.appendChild(rn(h,0,all)));
     con.appendChild(row);
   }
@@ -307,36 +344,34 @@ function bt(){
 }
 
 function ind(did,div){
-  if(!did)return false;if(did===div||did.startsWith(div+'-'))return true;
-  let d=dm[did];while(d){if(d.id===div)return true;d=dm[d.pid];}return false;
+  if(!did)return false; if(did===div||did.startsWith(div+'-'))return true;
+  let d=dm[did]; while(d){if(d.id===div)return true;d=dm[d.pid];}return false;
 }
 
 function rn(e,dep,al){
-  const w=mk('div','');w.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
+  const w=mk('div'); w.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
   const kids=(co[e.id]||[]).filter(k=>!al||al.includes(k));
   const shouldCollapse=dep>=COLLAPSE_AT&&kids.length>0;
 
-  // Card row
-  const crow=mk('div','');crow.style.cssText='display:flex;align-items:center;';
-  const card=mc(e,dep);card.id='c'+e.id;crow.appendChild(card);
+  const crow=mk('div'); crow.style.cssText='display:flex;align-items:center;';
+  const card=mc(e,dep); card.id='c'+e.id; crow.appendChild(card);
 
   if(kids.length>0){
     const xb=mk('button','xbtn',shouldCollapse?'+':'−');
-    xb.title=shouldCollapse?`แสดง ${kids.length} คน`:`ซ่อน`;
+    xb.title=shouldCollapse?`แสดง ${kids.length} คน`:'ซ่อน';
     crow.appendChild(xb);
     w.appendChild(crow);
 
-    // Vertical down
-    const vs=mk('div','vline');vs.style.height='22px';w.appendChild(vs);
+    const vs=mk('div','vline'); vs.style.height='22px'; w.appendChild(vs);
 
-    // Children group
-    const cg=mk('div','cr');cg.dataset.pid=e.id;cg.style.cssText='display:flex;align-items:flex-start;position:relative;';
+    const cg=mk('div','cr'); cg.dataset.pid=e.id;
+    cg.style.cssText='display:flex;align-items:flex-start;position:relative;';
     if(shouldCollapse) cg.style.display='none';
 
     kids.forEach(child=>{
-      const cw=mk('div','');cw.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
-      const vu=mk('div','vline');vu.style.height='16px';cw.appendChild(vu);
-      cw.appendChild(rn(child,dep+1,al));cg.appendChild(cw);
+      const cw=mk('div'); cw.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
+      const vu=mk('div','vline'); vu.style.height='16px'; cw.appendChild(vu);
+      cw.appendChild(rn(child,dep+1,al)); cg.appendChild(cw);
     });
     w.appendChild(cg);
 
@@ -354,11 +389,9 @@ function rn(e,dep,al){
   return w;
 }
 
-// ── Draw connector lines ──────────────────────────────────────────────────
 function dl(){
   document.querySelectorAll('.cr').forEach(row=>{
-    // Remove old SVG
-    const old=row.querySelector('svg');if(old)old.remove();
+    const old=row.querySelector(':scope>svg'); if(old)old.remove();
     const kids=row.querySelectorAll(':scope > div');if(kids.length<2)return;
     const rr=row.getBoundingClientRect();
     const xs=Array.from(kids).map(c=>{const r=c.getBoundingClientRect();return r.left+r.width/2-rr.left;});
@@ -369,8 +402,7 @@ function dl(){
     ln.setAttribute('x1',Math.min(...xs));ln.setAttribute('x2',Math.max(...xs));
     ln.setAttribute('y1',y);ln.setAttribute('y2',y);
     ln.setAttribute('stroke','#D0D0D0');ln.setAttribute('stroke-width','1.5');
-    svg.appendChild(ln);
-    row.style.position='relative';row.insertBefore(svg,row.firstChild);
+    svg.appendChild(ln); row.style.position='relative'; row.insertBefore(svg,row.firstChild);
   });
 }
 
@@ -379,12 +411,8 @@ function mk(tag,cls,txt){const el=document.createElement(tag);if(cls)el.classNam
 // ── Card ──────────────────────────────────────────────────────────────────
 function mc(e,dep){
   const acc=dep<=1?'r':dep===2?'d':dep===3?'g':'l';
-  const c=mk('div','card '+acc);c.onclick=()=>spop(e);
-  // ข้อ 6: แสดงทั้งรูป และ ชื่อเล่น ไม่ซ้อนทับกัน
-  const avHTML=e.ph
-    ?`<div class="av"><img src="${PH}${e.ph}" alt="" onerror="this.parentElement.innerHTML='<span>${ai(e)}</span>'"/></div>`
-    :`<div class="av">${ai(e)}</div>`;
-  // ข้อ 7: ไม่แสดงรหัสพนักงาน
+  const c=mk('div','card '+acc); c.onclick=()=>spop(e);
+  const avHTML=makeAvHTML(e,'32px','av');
   c.innerHTML=`<div class="ca"></div><div class="cb">
     <div class="ar">${avHTML}<div class="ai">
       <div class="cn">${e.nth}</div>
@@ -398,7 +426,7 @@ function mc(e,dep){
         <div class="pl">${e.ten!==null?e.ten.toFixed(1)+' ปีงาน':'—'}</div>
       </div>
     </div></div>`;
-  if(e.ex1&&e.ex1.trim()){const kb=mk('div','kp',e.ex1);c.appendChild(kb);}
+  if(e.ex1&&e.ex1.trim()){c.appendChild(mk('div','kp',e.ex1));}
   return c;
 }
 function ai(e){if(e.nk)return e.nk;const p=e.nth.trim().split(/\s+/);return p.length>=2?p[0][0]+p[1][0]:e.nth.slice(0,2);}
@@ -406,9 +434,17 @@ function ai(e){if(e.nk)return e.nk;const p=e.nth.trim().split(/\s+/);return p.le
 // ── Popup ─────────────────────────────────────────────────────────────────
 function spop(e){
   cemp=e;
-  const av=document.getElementById('pav');
-  if(e.ph){av.innerHTML=`<img src="${PH}${e.ph}" alt="" onerror="this.innerHTML='${ai(e)}'"/>`;}
-  else{av.textContent=ai(e);}
+  const avEl=document.getElementById('pav');
+  avEl.innerHTML=makeAvHTML(e,'44px','').replace('<div class="">','').replace('</div>','') ||
+    `<span>${ai(e)}</span>`;
+  // Simpler: set innerHTML directly
+  const rp=resolvePhoto(e);
+  if(rp){
+    const tries=[];
+    for(const p of rp.paths) for(const ext of ['jpg','jpeg','png']) tries.push(p+rp.base+'.'+ext);
+    avEl.innerHTML=`<img src="${tries[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='${tries[1]||tries[0]}'" />`;
+  }else{avEl.textContent=ai(e);}
+
   document.getElementById('pnm').textContent=e.nth;
   document.getElementById('pne').textContent=e.nen||'';
   document.getElementById('pps').textContent=e.pos;
@@ -432,7 +468,6 @@ function ged(e){let d=dm[e.did];while(d){if(d.pid==='OGC')return d.id;d=dm[d.pid
 function cpop(){document.getElementById('ov').classList.remove('on');}
 function cio(ev){if(ev.target===document.getElementById('ov'))cpop();}
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')cpop();});
-
 function stab(n){[1,2].forEach(i=>{document.getElementById('t'+i).classList.toggle('on',i===n);document.getElementById('tc'+i).style.display=i===n?'':'none';});}
 
 function rlk(){
@@ -446,26 +481,24 @@ function tul(){
   const err=document.getElementById('lke');
   if(!id){err.textContent='กรุณากรอกรหัสพนักงาน';return;}
   if(!WL[id]){err.textContent='รหัสนี้ไม่มีสิทธิ์เข้าถึงข้อมูลบุคคล';return;}
-  const ac=WL[id];const ed=ged(cemp);
+  const ac=WL[id]; const ed=ged(cemp);
   if(ac!=='ALL'&&ed&&ed!==ac){err.textContent='คุณมีสิทธิ์เฉพาะสายงานของตัวเองเท่านั้น';return;}
-  ulas=id;ssc(cemp);
+  ulas=id; ssc(cemp);
 }
 function ssc(e){
   document.getElementById('lks').style.display='none';
   document.getElementById('sc').style.display='';
-  // ข้อ 1: format date Thai
   document.getElementById('spa').textContent=fdt(e.pa);
   document.getElementById('ssa').textContent=fdt(e.sa);
   document.getElementById('spp').textContent=e.pp||'—';
-  // Grades 2568→2567→2566
-  const gc=document.getElementById('sgr');gc.innerHTML='';
+  const gc=document.getElementById('sgr'); gc.innerHTML='';
   [[2568,e.g68],[2567,e.g67],[2566,e.g66]].forEach(([yr,g])=>{
     const ch=mk('div','gch');
-    const yl=mk('div','gyr',String(yr));
+    ch.appendChild(mk('div','gyr',String(yr)));
     const vl=mk('div','gvl');
-    if(!g||g===''||g==='n/a'||g==='N/A'){vl.classList.add('g0');vl.textContent='n/a';}
+    if(!g||g===''||g==='n/a'){vl.classList.add('g0');vl.textContent='n/a';}
     else{vl.classList.add('g'+g);vl.textContent=g;}
-    ch.appendChild(yl);ch.appendChild(vl);gc.appendChild(ch);
+    ch.appendChild(vl); gc.appendChild(ch);
   });
 }
 
@@ -487,14 +520,16 @@ function ds(){
       if(mid.has(c.id)){c.classList.add('hl');c.classList.remove('dm');}
       else{c.classList.add('dm');c.classList.remove('hl');}
     });
-    // Auto-expand collapsed nodes containing a match
-    document.querySelectorAll('.cr[style*="display: none"], .cr[style*="display:none"]').forEach(grp=>{
-      const hasMatch=Array.from(grp.querySelectorAll('.card')).some(c=>mid.has(c.id));
-      if(hasMatch){
-        grp.style.display='';
-        const pid=grp.dataset.pid;
-        if(pid){const btn=document.querySelector('#c'+pid+' ~ .xbtn, #c'+pid+' + .xbtn');
-          if(btn){btn.textContent='−';setTimeout(dl,30);}}
+    // Auto-expand collapsed parents
+    document.querySelectorAll('.cr').forEach(grp=>{
+      if(grp.style.display==='none'){
+        const has=Array.from(grp.querySelectorAll('.card')).some(c=>mid.has(c.id));
+        if(has){
+          grp.style.display='';
+          const pid=grp.dataset.pid;
+          const btn=document.querySelector(`[id="c${pid}"] ~ .xbtn`);
+          if(btn){btn.textContent='−';setTimeout(dl,30);}
+        }
       }
     });
     const f=document.querySelector('.card.hl');
