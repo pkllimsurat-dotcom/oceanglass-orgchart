@@ -159,7 +159,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
       <div class="lkw" id="lks">
         <div style="font-size:32px;margin-bottom:10px;">🔐</div>
         <div class="lkt">ข้อมูลที่จำกัดการเข้าถึง</div>
-        <div class="lks2">กรอกรหัสพนักงานของคุณ</div>
+        <div class="lks2">กรอกรหัสผ่านเพื่อดูข้อมูลส่วนบุคคล</div>
         <div class="lkr">
           <input class="lkin" id="lki2" type="password" inputmode="numeric" placeholder="••••••" autocomplete="off"/>
           <button class="lkb" onclick="tul()">ยืนยัน</button>
@@ -179,7 +179,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 <script>
 // ══════════════════════════ CONFIG ══════════════════════════════════════
 const XL = 'employees.xlsx';
-const WL = {
+// Division สิทธิ์ต่อ emp_id (แก้ที่นี่เมื่อต้องการเปลี่ยน division)
+// password อ่านจาก Excel column 'password' อัตโนมัติ
+const WL_DIV = {
   '168001':'ALL',      // ธีรนี MD
   '159029':'ALL',      // รักดี Director CHR
   '266049':'ALL',      // พงศ์กฤษณ์ DM HR
@@ -187,6 +189,7 @@ const WL = {
   '168015':'OGC-CCD', // อาณัติ ED CCD
   '166006':'OGC-MKT', // ณัฐฉวินี ED MKT
 };
+let pwMap = {}; // emp_id → password (โหลดจาก Excel)
 const COLLAPSE_AT = 1; // ซ่อนทุกอย่างใต้ ED โดย default
 const TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 // ═══════════════════════════════════════════════════════════════════════
@@ -217,6 +220,8 @@ async function init(){
     erows.forEach(r=>{
       const id=sv(r.emp_id); if(!id||id==='emp_id') return;
       const bd=pdate(r.birth_date), sd=pdate(r.start_date);
+      const pw=sv(r.password);
+      if(pw) pwMap[id]=pw; // เก็บ password จาก Excel
       emps.push({
         id, nth:sv(r.name_th), nen:sv(r.name_en), nk:sv(r.nickname),
         pos:sv(r.position), lv:sv(r.level), did:sv(r.dept_id),
@@ -463,7 +468,7 @@ function spop(e){
   if(e.ex1){exr.style.display='';document.getElementById('pex').innerHTML=`<span class="kpb">${e.ex1}</span>`;}
   else exr.style.display='none';
   stab(1);
-  if(ulas){const ac=WL[ulas];const ed=ged(e);if(ac==='ALL'||!ed||ed===ac)ssc(e);else rlk();}
+  if(ulas){const ac=WL_DIV[ulas]||'';const ed=ged(e);if(ac==='ALL'||!ed||ed===ac)ssc(e);else rlk();}
   else rlk();
   document.getElementById('ov').classList.add('on');
 }
@@ -474,13 +479,17 @@ document.addEventListener('keydown',ev=>{if(ev.key==='Escape')cpop();});
 function stab(n){[1,2].forEach(i=>{document.getElementById('t'+i).classList.toggle('on',i===n);document.getElementById('tc'+i).style.display=i===n?'':'none';});}
 function rlk(){document.getElementById('lks').style.display='';document.getElementById('sc').style.display='none';document.getElementById('lki2').value='';document.getElementById('lke').textContent='';}
 function tul(){
-  const id=document.getElementById('lki2').value.trim();
+  const pw=document.getElementById('lki2').value.trim();
   const err=document.getElementById('lke');
-  if(!id){err.textContent='กรุณากรอกรหัสพนักงาน';return;}
-  if(!WL[id]){err.textContent='รหัสนี้ไม่มีสิทธิ์เข้าถึงข้อมูลบุคคล';return;}
-  const ac=WL[id];const ed=ged(cemp);
+  if(!pw){err.textContent='กรุณากรอกรหัสผ่าน';return;}
+  // หา emp_id ที่ password ตรง
+  const matched=Object.keys(pwMap).find(k=>pwMap[k]===pw);
+  if(!matched){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
+  const ac=WL_DIV[matched]||'';
+  if(!ac){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
+  const ed=ged(cemp);
   if(ac!=='ALL'&&ed&&ed!==ac){err.textContent='คุณมีสิทธิ์เฉพาะสายงานของตัวเองเท่านั้น';return;}
-  ulas=id;ssc(cemp);
+  ulas=matched; ssc(cemp);
 }
 function ssc(e){
   document.getElementById('lks').style.display='none';
