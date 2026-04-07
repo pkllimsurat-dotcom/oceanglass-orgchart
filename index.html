@@ -10,16 +10,20 @@
 :root{--red:#DA1F26;--rl:#FDECEA;--blk:#1A1A1A;--gy:#76777B;--mid:#E4E4E4;--lg:#F5F5F5;--sf:#FAFAFA;--wh:#FFFFFF;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--blk);}
 
+/* ── Topbar ── */
 .tb{position:sticky;top:0;z-index:50;background:var(--wh);border-bottom:2.5px solid var(--red);padding:0 14px;display:flex;align-items:center;gap:10px;height:52px;box-shadow:0 1px 6px rgba(0,0,0,.07);}
 .logo{display:flex;align-items:center;gap:9px;flex-shrink:0;}
 .lb{width:28px;height:28px;background:var(--red);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;}
-.lm{font-size:13px;font-weight:600;} .ls{font-size:10px;color:var(--gy);}
+.lm{font-size:13px;font-weight:600;color:var(--blk);}
+.ls{font-size:10px;color:var(--gy);}
 .sw{display:flex;align-items:center;gap:7px;flex:1;min-width:80px;max-width:280px;background:var(--lg);border:1px solid var(--mid);border-radius:6px;padding:6px 10px;transition:border-color .15s;}
 .sw:focus-within{border-color:var(--red);background:var(--wh);}
 #si{background:none;border:none;outline:none;font-size:13px;color:var(--blk);width:100%;}
 #si::placeholder{color:#bbb;}
-.bdb{background:var(--rl);color:var(--red);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;margin-left:auto;flex-shrink:0;text-align:right;line-height:1.4;}
+/* ── badge: single line, right-aligned, no wrap ── */
+.bdb{color:var(--red);font-size:11px;font-weight:500;white-space:nowrap;margin-left:auto;flex-shrink:0;text-align:right;}
 
+/* ── Division bar ── */
 .dvb{padding:7px 14px;background:var(--wh);border-bottom:1px solid var(--mid);display:flex;align-items:center;gap:8px;}
 .dvl{font-size:11px;color:var(--gy);flex-shrink:0;}
 .dvs{display:flex;gap:6px;overflow-x:auto;flex:1;padding-bottom:1px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
@@ -27,19 +31,21 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .dvb2{padding:4px 12px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid var(--mid);background:var(--lg);color:var(--gy);white-space:nowrap;flex-shrink:0;transition:all .15s;}
 .dvb2.on,.dvb2:hover{background:var(--red);border-color:var(--red);color:#fff;}
 
+/* ── Legend ── */
 .lgd{display:flex;gap:14px;padding:5px 14px;flex-wrap:wrap;border-bottom:1px solid var(--mid);background:var(--wh);}
 .li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gy);}
 .ld{width:7px;height:7px;border-radius:50%;}
 
 #tw{padding:20px 14px 60px;overflow:auto;}
 
+/* ── Card ── */
 .card{background:var(--wh);border:1px solid var(--mid);border-radius:8px;display:flex;flex-direction:row;align-items:stretch;cursor:pointer;width:160px;margin:0 5px;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:box-shadow .15s,border-color .15s;overflow:hidden;flex-shrink:0;position:relative;}
 .card:active{opacity:.85;}
 .card:hover{box-shadow:0 3px 14px rgba(218,31,38,.12);border-color:#DA1F2660;}
 .ca{width:4px;flex-shrink:0;}
 .cb{padding:7px 8px;display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
-.av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;overflow:hidden;border:1.5px solid transparent;}
-.av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;overflow:hidden;border:1.5px solid transparent;background:var(--lg);}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
 .ar{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
 .ai{min-width:0;flex:1;}
 .cn{font-size:10px;font-weight:600;color:var(--blk);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -64,12 +70,13 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .cr{display:flex;align-items:flex-start;position:relative;}
 .vline{width:1.5px;background:var(--mid);margin:0 auto;}
 
+/* ── Popup ── */
 .ov{display:none;position:fixed;inset:0;background:rgba(26,26,26,.45);z-index:200;align-items:center;justify-content:center;padding:14px;}
 .ov.on{display:flex;}
 .pp{background:var(--wh);border-radius:12px;width:100%;max-width:360px;max-height:92vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);}
 .ph{background:var(--red);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1;}
 .pav{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;}
-.pav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.pav img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
 .pnm{font-size:14px;font-weight:600;color:#fff;line-height:1.3;}
 .pne{font-size:10px;color:rgba(255,255,255,.75);margin-top:1px;}
 .pps{font-size:10px;color:rgba(255,255,255,.85);margin-top:3px;line-height:1.3;}
@@ -81,7 +88,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .ir{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--lg);}
 .ir:last-child{border:none;}
 .il{font-size:11px;color:var(--gy);}
-.iv{font-size:11px;color:var(--blk);font-weight:500;text-align:right;max-width:55%;}
+.iv{font-size:11px;color:var(--blk);font-weight:500;text-align:right;max-width:60%;}
 .iv.r{color:var(--red);}
 .kpb{display:inline-block;background:#E67E22;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
 .gc{display:inline-flex;gap:8px;}
@@ -107,16 +114,19 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 <body>
 
 <div class="tb">
-  <div class="logo"><div class="lb">OG</div><div><div class="lm">Ocean Glass</div><div class="ls" id="ls">โครงสร้างองค์กร</div></div></div>
+  <div class="logo">
+    <div class="lb">OG</div>
+    <div><div class="lm">Ocean Glass</div><div class="ls">โครงสร้างองค์กร</div></div>
+  </div>
   <div class="sw">
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="#bbb" stroke-width="1.3"/><line x1="8.5" y1="8.5" x2="11.5" y2="11.5" stroke="#bbb" stroke-width="1.3" stroke-linecap="round"/></svg>
     <input id="si" placeholder="ค้นหาชื่อ / ตำแหน่ง..." autocomplete="off" autocorrect="off" spellcheck="false"/>
   </div>
+  <!-- badge: single line, no truncate -->
   <div class="bdb" id="bc">กำลังโหลด...</div>
 </div>
 
 <div class="dvb"><div class="dvl">สายงาน :</div><div class="dvs" id="dvs"></div></div>
-
 <div class="lgd">
   <div class="li"><div class="ld" style="background:var(--red)"></div>MD / Executive Director</div>
   <div class="li"><div class="ld" style="background:var(--blk)"></div>Department Manager</div>
@@ -167,62 +177,47 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 </div>
 
 <script>
-// ═══════════════════════════ CONFIG ════════════════════════════════════════
+// ══════════════════════════ CONFIG ══════════════════════════════════════
 const XL = 'employees.xlsx';
-
-// รูปพนักงาน: ลองหลาย path อัตโนมัติ (รองรับทั้ง root และ photos/)
-// ไฟล์รองรับ .jpg .jpeg .png ทั้งหมด
-const PHOTO_PATHS = ['', 'photos/'];  // ลองตามลำดับ
-
-// WHITELIST: รหัสพนักงาน → สายงาน ('ALL' = ทุกสาย)
 const WL = {
-  '168001': 'ALL',      // ธีรนี — MD
-  '159029': 'ALL',      // รักดี — Director CHR & HR
-  '266049': 'ALL',      // พงศ์กฤษณ์ — DM HR
-  '268029': 'OGC-MFG', // วุฒิชัย — ED Manufacturing
-  '168015': 'OGC-CCD', // อาณัติ — ED CCD
-  '166006': 'OGC-MKT', // ณัฐฉวินี — ED Marketing
-  // รังษิยา 160001 ถูกลบออกตาม V2.docx ข้อ 1
+  '168001':'ALL',      // ธีรนี MD
+  '159029':'ALL',      // รักดี Director CHR
+  '266049':'ALL',      // พงศ์กฤษณ์ DM HR
+  '268029':'OGC-MFG', // วุฒิชัย ED MFG
+  '168015':'OGC-CCD', // อาณัติ ED CCD
+  '166006':'OGC-MKT', // ณัฐฉวินี ED MKT
 };
-
-// Default: collapse nodes ที่ลึกกว่า depth นี้ (1=ซ่อนทุกอย่างใต้ ED)
-const COLLAPSE_AT = 1;
-// ═══════════════════════════════════════════════════════════════════════════
+const COLLAPSE_AT = 1; // ซ่อนทุกอย่างใต้ ED โดย default
+const TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+// ═══════════════════════════════════════════════════════════════════════
 
 let emps=[],dm={},em={},co={};
 let adiv='ALL', ulas=null, cemp=null;
-const TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-const PHOTO_CACHE = {}; // cache resolved photo path per emp_id
 
 async function init(){
   try{
     const res=await fetch(XL+'?v='+Date.now());
-    if(!res.ok)throw new Error('ไม่พบไฟล์ '+XL);
+    if(!res.ok) throw new Error('ไม่พบไฟล์ '+XL);
     const wb=XLSX.read(await res.arrayBuffer(),{type:'array',cellDates:true});
 
-    // ── Read as_of_date from row 1 of Employees ──────────────────────────
+    // as_of_date from row 1
     const ws=wb.Sheets['Employees'];
-    const r1=XLSX.utils.sheet_to_json(ws,{header:1,defval:''})[0];
+    const r1=XLSX.utils.sheet_to_json(ws,{header:1,defval:''})[0]||[];
     const asOfRaw=String(r1[0]||'');
-    const asOfMatch=asOfRaw.match(/as_of_date=(.+)/);
-    if(asOfMatch){
-      document.getElementById('ls').textContent='โครงสร้างองค์กร';
-      document.getElementById('bc').innerHTML=
-        `<span style="font-size:9px;line-height:1.3">ข้อมูลพนักงาน<br>ณ วันที่ ${asOfMatch[1].trim()}</span>`;
-    }
+    const asOfM=asOfRaw.match(/as_of_date=(.+)/);
 
-    // ── Departments ───────────────────────────────────────────────────────
+    // Departments
     XLSX.utils.sheet_to_json(wb.Sheets['Departments'],{defval:''}).forEach(r=>{
-      const id=sv(r.dept_id);if(!id)return;
+      const id=sv(r.dept_id); if(!id) return;
       dm[id]={id,name:sv(r.dept_name),pid:sv(r.parent_dept_id),lo:+sv(r.level_order)||0};
     });
 
-    // ── Employees (header row 2, skip row 1 = as_of) ─────────────────────
+    // Employees (range:1 = skip row 0 which is as_of row, use row 1 as header)
     const erows=XLSX.utils.sheet_to_json(ws,{defval:'',range:1});
     erows.forEach(r=>{
-      const id=sv(r.emp_id);if(!id||id==='emp_id')return;
-      const bd=pd(r.birth_date), sd=pd(r.start_date);
-      const e={
+      const id=sv(r.emp_id); if(!id||id==='emp_id') return;
+      const bd=pdate(r.birth_date), sd=pdate(r.start_date);
+      emps.push({
         id, nth:sv(r.name_th), nen:sv(r.name_en), nk:sv(r.nickname),
         pos:sv(r.position), lv:sv(r.level), did:sv(r.dept_id),
         rep:sv(r.reports_to).replace(/\.0$/,''),
@@ -232,15 +227,19 @@ async function init(){
         pa:sv(r.last_pa_date), sa:sv(r.last_sa_date),
         pp:sv(r.pay_point_pct),
         g68:sv(r.grade_2568), g67:sv(r.grade_2567), g66:sv(r.grade_2566),
-      };
-      emps.push(e); em[id]=e;
+      });
     });
-
+    emps.forEach(e=>{em[e.id]=e;});
     emps.forEach(e=>{if(!e.rep)return;if(!co[e.rep])co[e.rep]=[];co[e.rep].push(e);});
 
+    // Badge: single line
     const total=emps.length;
-    if(!asOfMatch) document.getElementById('bc').textContent=total+' คน';
-    else document.getElementById('bc').innerHTML+=`<br><span style="font-size:10px;font-weight:600">${total} คน</span>`;
+    const bc=document.getElementById('bc');
+    if(asOfM){
+      bc.textContent=`ข้อมูลพนักงาน ณ วันที่ ${asOfM[1].trim()}  •  ${total} คน`;
+    } else {
+      bc.textContent=total+' คน';
+    }
 
     bdf(); bt();
   }catch(ex){
@@ -249,65 +248,50 @@ async function init(){
   }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────
 function sv(x){
   if(x===null||x===undefined)return'';
   if(typeof x==='number'&&isNaN(x))return'';
   const s=String(x).trim();
   return(s==='nan'||s==='NaT'||s==='<NA>')?'':s;
 }
-
-// Parse DD/MM/YYYY string (from Excel)
-function pd(v){
-  if(!v)return null;
-  if(v instanceof Date)return isNaN(v)?null:v;
+function pdate(v){
+  if(!v)return null; if(v instanceof Date)return isNaN(v)?null:v;
   const s=sv(v); if(!s||s==='-')return null;
   const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if(m)return new Date(+m[3],+m[2]-1,+m[1]);
   const d=new Date(s); return isNaN(d)?null:d;
 }
-
 function decY(from){return(new Date()-from)/(365.25*24*3600*1000);}
 function fa(n){return n!==null?n.toFixed(2)+' ปี':'—';}
 function ft(n){return n===null?'—':n.toFixed(2)+' ปี';}
-
-// ข้อ 3: format DD ดดด ปปปป (พ.ศ.)
 function fdt(s){
   if(!s||s==='-'||s==='—'||s==='n/a')return'—';
   const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if(m){
-    const d=m[1].padStart(2,'0');
-    const mo=TH_MON[+m[2]-1];
-    const yy=+m[3]+543; // แปลงเป็น พ.ศ.
-    return `${d} ${mo} ${yy}`;
+    const yy=+m[3]+543;
+    return `${m[1].padStart(2,'0')} ${TH_MON[+m[2]-1]} ${yy}`;
   }
   return s;
 }
 
-// ── Photo: try .jpg then .png then fallback ────────────────────────────────
-function resolvePhoto(e){
-  if(!e.photo)return null;
-  // photo_filename may or may not have extension
+// ── Photo: try multiple paths + extensions without flicker ────────────────
+// สร้าง img ที่ลอง src หลายอัน เมื่อล้มเหลวแสดง initials แทน
+function setPhoto(el, empId, fallbackText, size) {
+  // ดู photo_filename จาก emp
+  const e = em[empId];
+  if(!e || !e.photo){el.textContent=fallbackText;return;}
   const base=e.photo.replace(/\.(jpg|jpeg|png|webp)$/i,'');
-  const exts=['jpg','jpeg','png'];
-  // Try each path + ext combo; return first that loads
-  // We'll build img with onerror chain
-  return {base, exts, paths:PHOTO_PATHS};
-}
-
-function makeAvHTML(e,size='32px',cls='av'){
-  const rp=resolvePhoto(e);
-  if(!rp)return `<div class="${cls}">${ai(e)}</div>`;
-  const id='ph_'+e.id+'_'+size.replace('px','');
-  // Build img that tries paths in order: root/file.jpg, root/file.png, photos/file.jpg, photos/file.png
-  const tries=[];
-  for(const p of rp.paths) for(const ext of rp.exts) tries.push(p+rp.base+'.'+ext);
-  const chain=tries.map((src,i)=>
-    i<tries.length-1?`onerror="this.src='${tries[i+1]}'"`:
-    `onerror="this.parentElement.innerHTML='${ai(e)}'"`
-  ).join(' ');
-  // just use first src, chain onerror
-  return `<div class="${cls}" style="width:${size};height:${size}"><img src="${tries[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" ${tries.length>1?`onerror="this.src='${tries[1]}'"`:'onerror="this.parentElement.innerHTML=\''+ai(e)+'\'"'}/></div>`;
+  const tries=[''+base+'.jpg',''+base+'.jpeg',''+base+'.png','photos/'+base+'.jpg','photos/'+base+'.jpeg','photos/'+base+'.png'];
+  let idx=0;
+  const img=document.createElement('img');
+  img.style.cssText=`width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;`;
+  img.onload=()=>{ el.innerHTML=''; el.appendChild(img); };
+  img.onerror=()=>{
+    idx++;
+    if(idx<tries.length){ img.src=tries[idx]; }
+    else{ el.textContent=fallbackText; }
+  };
+  img.src=tries[0];
 }
 
 // ── Division filter ───────────────────────────────────────────────────────
@@ -315,7 +299,10 @@ function bdf(){
   const ds=Object.values(dm).filter(d=>d.pid==='OGC').sort((a,b)=>a.lo-b.lo);
   const sc=document.getElementById('dvs'); sc.innerHTML='';
   const ab=mk('button','dvb2 on','ทั้งหมด'); ab.onclick=()=>sd2('ALL'); sc.appendChild(ab);
-  ds.forEach(d=>{const b=mk('button','dvb2',d.name);b.dataset.dv=d.id;b.onclick=()=>sd2(d.id);sc.appendChild(b);});
+  ds.forEach(d=>{
+    const b=mk('button','dvb2',d.name); b.dataset.dv=d.id;
+    b.onclick=()=>sd2(d.id); sc.appendChild(b);
+  });
 }
 function sd2(id){
   adiv=id;
@@ -329,13 +316,22 @@ function bt(){
   const tw=document.getElementById('tw');
   if(!root){tw.innerHTML='<div class="cm"><div>⚠️ ไม่พบ root employee</div></div>';return;}
   tw.innerHTML='';
-  const con=mk('div'); con.style.cssText='display:inline-block;min-width:100%;padding-bottom:32px;';
+  const con=mk('div');
+  con.style.cssText='display:inline-block;min-width:100%;padding-bottom:32px;';
+
   if(adiv==='ALL'){
     con.appendChild(rn(root,0,null));
-  }else{
-    const all=emps.filter(e=>ind(e.did,adiv));
-    const heads=all.filter(e=>{if(!e.rep)return true;const b=em[e.rep];return!b||!all.includes(b);});
-    const row=mk('div'); row.style.cssText='display:flex;justify-content:center;';
+  } else {
+    // filter: employees whose dept_id is in the selected division
+    const all=emps.filter(e=>inDiv(e.did,adiv));
+    // head = reports to someone outside this division
+    const heads=all.filter(e=>{
+      if(!e.rep) return true;
+      const boss=em[e.rep];
+      return !boss || !all.includes(boss);
+    });
+    const row=mk('div');
+    row.style.cssText='display:flex;justify-content:center;';
     heads.forEach(h=>row.appendChild(rn(h,0,all)));
     con.appendChild(row);
   }
@@ -343,16 +339,25 @@ function bt(){
   setTimeout(dl,80);
 }
 
-function ind(did,div){
-  if(!did)return false; if(did===div||did.startsWith(div+'-'))return true;
-  let d=dm[did]; while(d){if(d.id===div)return true;d=dm[d.pid];}return false;
+function inDiv(did,div){
+  if(!did) return false;
+  // Direct match or child
+  if(did===div||did.startsWith(div+'-')) return true;
+  // Walk up dept tree
+  let d=dm[did];
+  while(d){
+    if(d.id===div) return true;
+    if(!d.pid) break;
+    d=dm[d.pid];
+  }
+  return false;
 }
 
 function rn(e,dep,al){
-  const w=mk('div'); w.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
+  const w=mk('div');
+  w.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
   const kids=(co[e.id]||[]).filter(k=>!al||al.includes(k));
   const shouldCollapse=dep>=COLLAPSE_AT&&kids.length>0;
-
   const crow=mk('div'); crow.style.cssText='display:flex;align-items:center;';
   const card=mc(e,dep); card.id='c'+e.id; crow.appendChild(card);
 
@@ -361,29 +366,25 @@ function rn(e,dep,al){
     xb.title=shouldCollapse?`แสดง ${kids.length} คน`:'ซ่อน';
     crow.appendChild(xb);
     w.appendChild(crow);
-
     const vs=mk('div','vline'); vs.style.height='22px'; w.appendChild(vs);
-
     const cg=mk('div','cr'); cg.dataset.pid=e.id;
     cg.style.cssText='display:flex;align-items:flex-start;position:relative;';
     if(shouldCollapse) cg.style.display='none';
-
     kids.forEach(child=>{
       const cw=mk('div'); cw.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
       const vu=mk('div','vline'); vu.style.height='16px'; cw.appendChild(vu);
       cw.appendChild(rn(child,dep+1,al)); cg.appendChild(cw);
     });
     w.appendChild(cg);
-
     xb.onclick=(ev)=>{
       ev.stopPropagation();
       const hidden=cg.style.display==='none';
       cg.style.display=hidden?'':'none';
       xb.textContent=hidden?'−':'+';
       xb.title=hidden?'ซ่อน':`แสดง ${kids.length} คน`;
-      if(hidden)setTimeout(dl,60);
+      if(hidden) setTimeout(dl,60);
     };
-  }else{
+  } else {
     w.appendChild(crow);
   }
   return w;
@@ -391,8 +392,8 @@ function rn(e,dep,al){
 
 function dl(){
   document.querySelectorAll('.cr').forEach(row=>{
-    const old=row.querySelector(':scope>svg'); if(old)old.remove();
-    const kids=row.querySelectorAll(':scope > div');if(kids.length<2)return;
+    const old=row.querySelector(':scope>svg'); if(old) old.remove();
+    const kids=row.querySelectorAll(':scope > div'); if(kids.length<2) return;
     const rr=row.getBoundingClientRect();
     const xs=Array.from(kids).map(c=>{const r=c.getBoundingClientRect();return r.left+r.width/2-rr.left;});
     const y=16;
@@ -406,18 +407,26 @@ function dl(){
   });
 }
 
-function mk(tag,cls,txt){const el=document.createElement(tag);if(cls)el.className=cls;if(txt!==undefined)el.textContent=txt;return el;}
+function mk(tag,cls,txt){
+  const el=document.createElement(tag);
+  if(cls) el.className=cls;
+  if(txt!==undefined) el.textContent=txt;
+  return el;
+}
 
 // ── Card ──────────────────────────────────────────────────────────────────
 function mc(e,dep){
   const acc=dep<=1?'r':dep===2?'d':dep===3?'g':'l';
   const c=mk('div','card '+acc); c.onclick=()=>spop(e);
-  const avHTML=makeAvHTML(e,'32px','av');
+  const ini=ai(e);
   c.innerHTML=`<div class="ca"></div><div class="cb">
-    <div class="ar">${avHTML}<div class="ai">
-      <div class="cn">${e.nth}</div>
-      <div class="nk">${e.nk||''}</div>
-    </div></div>
+    <div class="ar">
+      <div class="av" id="av_${e.id}">${ini}</div>
+      <div class="ai">
+        <div class="cn">${e.nth}</div>
+        <div class="nk">${e.nk||''}</div>
+      </div>
+    </div>
     <div class="cp">${e.pos}</div>
     <div class="cf">
       <span class="lp">${e.lv||'—'}</span>
@@ -426,7 +435,9 @@ function mc(e,dep){
         <div class="pl">${e.ten!==null?e.ten.toFixed(1)+' ปีงาน':'—'}</div>
       </div>
     </div></div>`;
-  if(e.ex1&&e.ex1.trim()){c.appendChild(mk('div','kp',e.ex1));}
+  if(e.ex1&&e.ex1.trim()) c.appendChild(mk('div','kp',e.ex1));
+  // Load photo after render (no flicker)
+  if(e.photo) setTimeout(()=>{ const el=document.getElementById('av_'+e.id); if(el) setPhoto(el,e.id,ini,'32px'); },0);
   return c;
 }
 function ai(e){if(e.nk)return e.nk;const p=e.nth.trim().split(/\s+/);return p.length>=2?p[0][0]+p[1][0]:e.nth.slice(0,2);}
@@ -435,15 +446,8 @@ function ai(e){if(e.nk)return e.nk;const p=e.nth.trim().split(/\s+/);return p.le
 function spop(e){
   cemp=e;
   const avEl=document.getElementById('pav');
-  avEl.innerHTML=makeAvHTML(e,'44px','').replace('<div class="">','').replace('</div>','') ||
-    `<span>${ai(e)}</span>`;
-  // Simpler: set innerHTML directly
-  const rp=resolvePhoto(e);
-  if(rp){
-    const tries=[];
-    for(const p of rp.paths) for(const ext of ['jpg','jpeg','png']) tries.push(p+rp.base+'.'+ext);
-    avEl.innerHTML=`<img src="${tries[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='${tries[1]||tries[0]}'" />`;
-  }else{avEl.textContent=ai(e);}
+  avEl.textContent=ai(e);
+  if(e.photo) setPhoto(avEl,e.id,ai(e),'44px');
 
   document.getElementById('pnm').textContent=e.nth;
   document.getElementById('pne').textContent=e.nen||'';
@@ -463,27 +467,20 @@ function spop(e){
   else rlk();
   document.getElementById('ov').classList.add('on');
 }
-
 function ged(e){let d=dm[e.did];while(d){if(d.pid==='OGC')return d.id;d=dm[d.pid];}return null;}
 function cpop(){document.getElementById('ov').classList.remove('on');}
 function cio(ev){if(ev.target===document.getElementById('ov'))cpop();}
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')cpop();});
 function stab(n){[1,2].forEach(i=>{document.getElementById('t'+i).classList.toggle('on',i===n);document.getElementById('tc'+i).style.display=i===n?'':'none';});}
-
-function rlk(){
-  document.getElementById('lks').style.display='';
-  document.getElementById('sc').style.display='none';
-  document.getElementById('lki2').value='';
-  document.getElementById('lke').textContent='';
-}
+function rlk(){document.getElementById('lks').style.display='';document.getElementById('sc').style.display='none';document.getElementById('lki2').value='';document.getElementById('lke').textContent='';}
 function tul(){
   const id=document.getElementById('lki2').value.trim();
   const err=document.getElementById('lke');
   if(!id){err.textContent='กรุณากรอกรหัสพนักงาน';return;}
   if(!WL[id]){err.textContent='รหัสนี้ไม่มีสิทธิ์เข้าถึงข้อมูลบุคคล';return;}
-  const ac=WL[id]; const ed=ged(cemp);
+  const ac=WL[id];const ed=ged(cemp);
   if(ac!=='ALL'&&ed&&ed!==ac){err.textContent='คุณมีสิทธิ์เฉพาะสายงานของตัวเองเท่านั้น';return;}
-  ulas=id; ssc(cemp);
+  ulas=id;ssc(cemp);
 }
 function ssc(e){
   document.getElementById('lks').style.display='none';
@@ -498,7 +495,7 @@ function ssc(e){
     const vl=mk('div','gvl');
     if(!g||g===''||g==='n/a'){vl.classList.add('g0');vl.textContent='n/a';}
     else{vl.classList.add('g'+g);vl.textContent=g;}
-    ch.appendChild(vl); gc.appendChild(ch);
+    ch.appendChild(vl);gc.appendChild(ch);
   });
 }
 
@@ -520,14 +517,13 @@ function ds(){
       if(mid.has(c.id)){c.classList.add('hl');c.classList.remove('dm');}
       else{c.classList.add('dm');c.classList.remove('hl');}
     });
-    // Auto-expand collapsed parents
     document.querySelectorAll('.cr').forEach(grp=>{
       if(grp.style.display==='none'){
         const has=Array.from(grp.querySelectorAll('.card')).some(c=>mid.has(c.id));
         if(has){
           grp.style.display='';
           const pid=grp.dataset.pid;
-          const btn=document.querySelector(`[id="c${pid}"] ~ .xbtn`);
+          const btn=document.querySelector(`#c${pid} ~ .xbtn`);
           if(btn){btn.textContent='−';setTimeout(dl,30);}
         }
       }
