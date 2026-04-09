@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Ocean Glass — โครงสร้างองค์กร</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--red:#DA1F26;--rl:#FDECEA;--blk:#1A1A1A;--gy:#76777B;--mid:#E4E4E4;--lg:#F5F5F5;--sf:#FAFAFA;--wh:#FFFFFF;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--blk);}
+
+/* ── Topbar ── */
+.tb{position:sticky;top:0;z-index:50;background:var(--wh);border-bottom:2.5px solid var(--red);padding:0 14px;display:flex;align-items:center;gap:10px;height:52px;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+.logo{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.lb{width:28px;height:28px;background:var(--red);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;}
+.lm{font-size:13px;font-weight:600;color:var(--blk);}
+.ls{font-size:10px;color:var(--gy);}
+.sw{display:flex;align-items:center;gap:7px;flex:1;min-width:80px;max-width:280px;background:var(--lg);border:1px solid var(--mid);border-radius:6px;padding:6px 10px;transition:border-color .15s;}
+.sw:focus-within{border-color:var(--red);background:var(--wh);}
+#si{background:none;border:none;outline:none;font-size:13px;color:var(--blk);width:100%;}
+#si::placeholder{color:#bbb;}
+/* ── badge: single line, right-aligned, no wrap ── */
+.bdb{color:var(--red);font-size:11px;font-weight:500;white-space:nowrap;margin-left:auto;flex-shrink:0;text-align:right;}
+
+/* ── Division bar ── */
+.dvb{padding:7px 14px;background:var(--wh);border-bottom:1px solid var(--mid);display:flex;align-items:center;gap:8px;}
+.dvl{font-size:11px;color:var(--gy);flex-shrink:0;}
+.dvs{display:flex;gap:6px;overflow-x:auto;flex:1;padding-bottom:1px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.dvs::-webkit-scrollbar{display:none;}
+.dvb2{padding:4px 12px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid var(--mid);background:var(--lg);color:var(--gy);white-space:nowrap;flex-shrink:0;transition:all .15s;}
+.dvb2.on,.dvb2:hover{background:var(--red);border-color:var(--red);color:#fff;}
+
+/* ── Legend ── */
+.lgd{display:flex;gap:14px;padding:5px 14px;flex-wrap:wrap;border-bottom:1px solid var(--mid);background:var(--wh);}
+.li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gy);}
+.ld{width:7px;height:7px;border-radius:50%;}
+
+#tw{padding:20px 14px 60px;overflow:auto;}
+
+/* ── Card ── */
+.card{background:var(--wh);border:1px solid var(--mid);border-radius:8px;display:flex;flex-direction:row;align-items:stretch;cursor:pointer;width:160px;margin:0 5px;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:box-shadow .15s,border-color .15s;overflow:hidden;flex-shrink:0;position:relative;}
+.card:active{opacity:.85;}
+.card:hover{box-shadow:0 3px 14px rgba(218,31,38,.12);border-color:#DA1F2660;}
+.ca{width:4px;flex-shrink:0;}
+.cb{padding:7px 8px;display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+.av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;overflow:hidden;border:1.5px solid transparent;background:var(--lg);}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.ar{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
+.ai{min-width:0;flex:1;}
+.cn{font-size:10px;font-weight:600;color:var(--blk);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nk{font-size:8.5px;color:var(--gy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:11px;}
+.cp{font-size:8.5px;color:var(--gy);line-height:1.3;}
+.cf{display:flex;align-items:center;justify-content:space-between;margin-top:3px;padding-top:3px;border-top:1px solid var(--lg);}
+.lp{border-radius:3px;padding:1px 5px;font-size:7.5px;font-weight:700;}
+.sr{display:flex;gap:3px;}
+.pl{background:var(--lg);border-radius:3px;padding:1px 4px;font-size:7px;color:var(--gy);}
+.kp{position:absolute;top:4px;right:4px;background:#E67E22;color:#fff;font-size:7px;font-weight:700;padding:1px 4px;border-radius:3px;line-height:1.4;}
+
+.r .ca{background:var(--red);} .r .av{background:var(--rl);color:var(--red);border-color:#F5A0A350;} .r .lp{background:var(--red);color:#fff;}
+.d .ca{background:var(--blk);} .d .av{background:#EBEBEB;color:var(--blk);border-color:#C8C8C850;} .d .lp{background:var(--blk);color:#fff;}
+.g .ca{background:var(--gy);} .g .av{background:#F5F5F5;color:var(--gy);} .g .lp{background:var(--gy);color:#fff;}
+.l .ca{background:#C0C0C0;} .l .av{background:#F8F8F8;color:#999;} .l .lp{background:#C0C0C0;color:#fff;}
+
+.xbtn{display:flex;align-items:center;justify-content:center;width:18px;height:18px;min-width:18px;border-radius:50%;background:var(--mid);border:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--gy);transition:all .15s;margin-left:3px;flex-shrink:0;}
+.xbtn:hover{background:var(--red);color:#fff;}
+
+.card.hl{border-color:var(--red)!important;box-shadow:0 0 0 2px rgba(218,31,38,.3)!important;}
+.card.dm{opacity:.2;pointer-events:none;}
+.cr{display:flex;align-items:flex-start;position:relative;}
+.vline{width:1.5px;background:var(--mid);margin:0 auto;}
+
+/* ── Popup ── */
+.ov{display:none;position:fixed;inset:0;background:rgba(26,26,26,.45);z-index:200;align-items:center;justify-content:center;padding:14px;}
+.ov.on{display:flex;}
+.pp{background:var(--wh);border-radius:12px;width:100%;max-width:360px;max-height:92vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);}
+.ph{background:var(--red);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1;}
+.pav{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;}
+.pav img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.pnm{font-size:14px;font-weight:600;color:#fff;line-height:1.3;}
+.pne{font-size:10px;color:rgba(255,255,255,.75);margin-top:1px;}
+.pps{font-size:10px;color:rgba(255,255,255,.85);margin-top:3px;line-height:1.3;}
+.pcl{background:rgba(255,255,255,.15);border:none;color:#fff;width:27px;height:27px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-left:auto;}
+.pts{display:flex;border-bottom:1px solid var(--mid);}
+.pt{flex:1;padding:10px;text-align:center;font-size:12px;cursor:pointer;color:var(--gy);border-bottom:2px solid transparent;transition:all .15s;}
+.pt.on{color:var(--red);border-bottom-color:var(--red);font-weight:600;}
+.pb{padding:12px 16px;}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--lg);}
+.ir:last-child{border:none;}
+.il{font-size:11px;color:var(--gy);}
+.iv{font-size:11px;color:var(--blk);font-weight:500;text-align:right;max-width:60%;}
+.iv.r{color:var(--red);}
+.kpb{display:inline-block;background:#E67E22;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
+.gc{display:inline-flex;gap:8px;}
+.gch{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.gyr{font-size:8px;color:var(--gy);}
+.gvl{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+.g1{background:#C0392B;} .g2{background:#E67E22;} .g3{background:#F1C40F;color:#333!important;} .g4{background:#27AE60;} .g5{background:#2980B9;} .g0{background:#ccc;color:#666!important;font-size:8px!important;}
+
+.lkw{padding:22px 16px;text-align:center;}
+.lkt{font-size:14px;font-weight:600;margin-bottom:4px;}
+.lks2{font-size:11px;color:var(--gy);margin-bottom:14px;}
+.lkr{display:flex;gap:8px;}
+.lkin{flex:1;border:1px solid var(--mid);border-radius:6px;padding:8px 10px;font-size:14px;outline:none;letter-spacing:4px;}
+.lkin:focus{border-color:var(--red);}
+.lkb{background:var(--red);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;}
+.lke{color:var(--red);font-size:11px;margin-top:6px;}
+
+
+/* ── View toggle ── */
+.vtog{display:flex;gap:6px;flex-shrink:0;margin-left:8px;}
+.vbtn{padding:4px 10px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid var(--mid);background:var(--lg);color:var(--gy);white-space:nowrap;transition:all .15s;}
+.vbtn.on{background:var(--blk);border-color:var(--blk);color:#fff;}
+
+/* ── Grade list view ── */
+.grade-section{margin-bottom:24px;}
+.grade-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:6px 0;}
+.grade-label{background:var(--blk);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;white-space:nowrap;}
+.grade-count{font-size:11px;color:var(--gy);}
+.grade-divider{flex:1;height:1px;background:var(--mid);}
+.grade-cards{display:flex;flex-wrap:wrap;gap:10px;padding-left:4px;}
+
+.cm{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:35vh;gap:10px;color:var(--gy);}
+.sp{width:32px;height:32px;border:3px solid var(--mid);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <div class="logo">
+    <div class="lb">OG</div>
+    <div><div class="lm">Ocean Glass</div><div class="ls">โครงสร้างองค์กร</div></div>
+  </div>
+  <div class="sw">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="#bbb" stroke-width="1.3"/><line x1="8.5" y1="8.5" x2="11.5" y2="11.5" stroke="#bbb" stroke-width="1.3" stroke-linecap="round"/></svg>
+    <input id="si" placeholder="ค้นหาชื่อ / ตำแหน่ง..." autocomplete="off" autocorrect="off" spellcheck="false"/>
+  </div>
+  <!-- badge: single line, no truncate -->
+  <div class="bdb" id="bc">กำลังโหลด...</div>
+</div>
+
+<div class="dvb"><div class="dvl">สายงาน :</div><div class="dvs" id="dvs"></div><div class="vtog"><button class="vbtn on" id="vTree" onclick="setView('tree')" title="แสดงแบบโครงสร้าง">🌲 โครงสร้าง</button><button class="vbtn" id="vGrade" onclick="setView('grade')" title="เรียงตาม Job Grade">📊 Grade</button></div></div>
+<div class="lgd">
+  <div class="li"><div class="ld" style="background:var(--red)"></div>MD / Executive Director</div>
+  <div class="li"><div class="ld" style="background:var(--blk)"></div>Department Manager</div>
+  <div class="li"><div class="ld" style="background:var(--gy)"></div>Section / Support Manager</div>
+  <div class="li"><div class="ld" style="background:#C0C0C0"></div>Staff / Engineer</div>
+</div>
+
+<div id="tw"><div class="cm"><div class="sp"></div><div>กำลังโหลดข้อมูล...</div></div></div>
+
+<div class="ov" id="ov" onclick="cio(event)">
+  <div class="pp">
+    <div class="ph">
+      <div class="pav" id="pav"></div>
+      <div style="min-width:0;flex:1;"><div class="pnm" id="pnm"></div><div class="pne" id="pne"></div><div class="pps" id="pps"></div></div>
+      <button class="pcl" onclick="cpop()">✕</button>
+    </div>
+    <div class="pts">
+      <div class="pt on" id="t1" onclick="stab(1)">ข้อมูลทั่วไป</div>
+      <div class="pt" id="t2" onclick="stab(2)">🔒 ข้อมูลบุคคล</div>
+    </div>
+    <div class="pb" id="tc1">
+      <div class="ir"><span class="il">ระดับ</span><span class="iv r" id="plv"></span></div>
+      <div class="ir"><span class="il">อายุตัว</span><span class="iv" id="pag"></span></div>
+      <div class="ir"><span class="il">อายุงาน</span><span class="iv" id="ptn"></span></div>
+      <div class="ir"><span class="il">หน่วยงาน</span><span class="iv" id="pdt"></span></div>
+      <div class="ir"><span class="il">รายงานต่อ</span><span class="iv" id="prp"></span></div>
+      <div class="ir" id="pex_row" style="display:none;"><span class="il">หมายเหตุ</span><span class="iv" id="pex"></span></div>
+    </div>
+    <div id="tc2" style="display:none;">
+      <div class="lkw" id="lks">
+        <div style="font-size:32px;margin-bottom:10px;">🔐</div>
+        <div class="lkt">ข้อมูลที่จำกัดการเข้าถึง</div>
+        <div class="lks2">กรอกรหัสผ่านเพื่อดูข้อมูลส่วนบุคคล</div>
+        <div class="lkr">
+          <input class="lkin" id="lki2" type="password" inputmode="numeric" placeholder="••••••" autocomplete="off"/>
+          <button class="lkb" onclick="tul()">ยืนยัน</button>
+        </div>
+        <div class="lke" id="lke"></div>
+      </div>
+      <div class="pb" id="sc" style="display:none;">
+        <div class="ir"><span class="il">ปรับตำแหน่งล่าสุด</span><span class="iv" id="spa"></span></div>
+        <div class="ir"><span class="il">ปรับเงินพิเศษล่าสุด</span><span class="iv" id="ssa"></span></div>
+        <div class="ir"><span class="il">% Pay Point ล่าสุด</span><span class="iv" id="spp"></span></div>
+        <div class="ir"><span class="il">เกรดประเมิน</span><div class="gc" id="sgr"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════ CONFIG ══════════════════════════════════════
+const XL = 'employees.xlsx';
+// Division สิทธิ์ต่อ emp_id (แก้ที่นี่เมื่อต้องการเปลี่ยน division)
+// password อ่านจาก Excel column 'password' อัตโนมัติ
+const WL_DIV = {
+  '168001':'ALL',      // ธีรนี MD
+  '159029':'ALL',      // รักดี Director CHR
+  '266049':'ALL',      // พงศ์กฤษณ์ DM HR
+  '268029':'OGC-MFG', // วุฒิชัย ED MFG
+  '168015':'OGC-CCD', // อาณัติ ED CCD
+  '166006':'OGC-MKT', // ณัฐฉวินี ED MKT
+};
+let pwMap = {}; // emp_id → password (โหลดจาก Excel)
+const COLLAPSE_AT = 1; // ซ่อนทุกอย่างใต้ ED โดย default
+const TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+// ═══════════════════════════════════════════════════════════════════════
+
+
+// Job Grade order (1=สูงสุด, ท้ายสุด=TEMP)
+const GRADE_ORDER = {
+  '7(18)':1,
+  '6(17C)':2,'6(17B)':3,'6(17A)':4,
+  '5(16)':5,'5(15)':6,'5(14)':7,
+  '4(13)':8,'4(12)':9,
+  '3D(11S)':10,'3C(11)':11,'3C(10)':12,'3B(9)':13,'3A(8)':14,
+  '2C(7S)':15,'2C(7B)':16,'2C(7A)':17,
+  '2B(6)':18,'2A(5)':19,'2A(4)':20,
+  'TEMP':99,
+};
+let viewMode='tree'; // 'tree' | 'grade'
+
+let emps=[],dm={},em={},co={};
+let adiv='ALL', ulas=null, cemp=null;
+
+
+// ── View toggle ──────────────────────────────────────────────────────────
+function setView(v){
+  viewMode=v;
+  document.getElementById('vTree').classList.toggle('on',v==='tree');
+  document.getElementById('vGrade').classList.toggle('on',v==='grade');
+  bt();
+}
+
+// ── Grade view ────────────────────────────────────────────────────────────
+function buildGradeView(filteredEmps){
+  const tw=document.getElementById('tw');
+  tw.innerHTML='';
+
+  if(!filteredEmps.length){
+    tw.innerHTML='<div class="cm"><div>ไม่พบพนักงานในสายงานนี้</div></div>';
+    return;
+  }
+
+  // Sort by grade order then name
+  const sorted=[...filteredEmps].sort((a,b)=>{
+    const oa=GRADE_ORDER[a.lv]||50, ob=GRADE_ORDER[b.lv]||50;
+    if(oa!==ob) return oa-ob;
+    return a.nth.localeCompare(b.nth,'th');
+  });
+
+  // Group by grade
+  const groups={};
+  sorted.forEach(e=>{
+    const g=e.lv||'—';
+    if(!groups[g]) groups[g]=[];
+    groups[g].push(e);
+  });
+
+  // Render each grade group
+  const gradeKeys=Object.keys(groups).sort((a,b)=>(GRADE_ORDER[a]||50)-(GRADE_ORDER[b]||50));
+  const con=document.createElement('div');
+  con.style.cssText='padding:4px 0 32px;';
+
+  gradeKeys.forEach(grade=>{
+    const empsInGrade=groups[grade];
+    const sec=document.createElement('div');
+    sec.className='grade-section';
+
+    // Header
+    const hdr=document.createElement('div');
+    hdr.className='grade-header';
+    const lbl=document.createElement('div');
+    lbl.className='grade-label'; lbl.textContent=grade;
+    const cnt=document.createElement('div');
+    cnt.className='grade-count'; cnt.textContent=empsInGrade.length+' คน';
+    const div=document.createElement('div');
+    div.className='grade-divider';
+    hdr.appendChild(lbl); hdr.appendChild(cnt); hdr.appendChild(div);
+    sec.appendChild(hdr);
+
+    // Cards row
+    const cards=document.createElement('div');
+    cards.className='grade-cards';
+    empsInGrade.forEach(e=>{
+      // depth based on grade order for accent color
+      const order=GRADE_ORDER[e.lv]||50;
+      const dep=order<=1?0:order<=4?1:order<=7?2:order<=9?3:4;
+      const card=mc(e,dep);
+      card.id='c'+e.id;
+      cards.appendChild(card);
+    });
+    sec.appendChild(cards);
+    con.appendChild(sec);
+  });
+
+  tw.appendChild(con);
+}
+
+async function init(){
+  try{
+    const res=await fetch(XL+'?v='+Date.now());
+    if(!res.ok) throw new Error('ไม่พบไฟล์ '+XL);
+    const wb=XLSX.read(await res.arrayBuffer(),{type:'array',cellDates:true});
+
+    // as_of_date from row 1
+    const ws=wb.Sheets['Employees'];
+    const r1=XLSX.utils.sheet_to_json(ws,{header:1,defval:''})[0]||[];
+    const asOfRaw=String(r1[0]||'');
+    const asOfM=asOfRaw.match(/as_of_date=(.+)/);
+
+    // Departments
+    XLSX.utils.sheet_to_json(wb.Sheets['Departments'],{defval:''}).forEach(r=>{
+      const id=sv(r.dept_id); if(!id) return;
+      dm[id]={id,name:sv(r.dept_name),pid:sv(r.parent_dept_id),lo:+sv(r.level_order)||0};
+    });
+
+    // Employees (range:1 = skip row 0 which is as_of row, use row 1 as header)
+    const erows=XLSX.utils.sheet_to_json(ws,{defval:'',range:1});
+    erows.forEach(r=>{
+      const id=sv(r.emp_id); if(!id||id==='emp_id') return;
+      const bd=pdate(r.birth_date), sd=pdate(r.start_date);
+      const pw=sv(r.password);
+      if(pw) pwMap[id]=pw; // เก็บ password จาก Excel
+      emps.push({
+        id, nth:sv(r.name_th), nen:sv(r.name_en), nk:sv(r.nickname),
+        pos:sv(r.position), lv:sv(r.level), did:sv(r.dept_id),
+        rep:sv(r.reports_to).replace(/\.0$/,''),
+        photo:sv(r.photo_filename), bd, sd,
+        age:bd?decY(bd):null, ten:sd?decY(sd):null,
+        ex1:sv(r.extra_1),
+        pa:sv(r.last_pa_date), sa:sv(r.last_sa_date),
+        pp:sv(r.pay_point_pct),
+        g68:sv(r.grade_2568), g67:sv(r.grade_2567), g66:sv(r.grade_2566),
+      });
+    });
+    emps.forEach(e=>{em[e.id]=e;});
+    emps.forEach(e=>{if(!e.rep)return;if(!co[e.rep])co[e.rep]=[];co[e.rep].push(e);});
+
+    // Badge: single line
+    const total=emps.length;
+    const bc=document.getElementById('bc');
+    if(asOfM){
+      bc.textContent=`ข้อมูลพนักงาน ณ วันที่ ${asOfM[1].trim()}  •  ${total} คน`;
+    } else {
+      bc.textContent=total+' คน';
+    }
+
+    bdf(); bt();
+  }catch(ex){
+    document.getElementById('tw').innerHTML=
+      `<div class="cm"><div style="font-size:28px">⚠️</div><div style="font-size:13px;color:var(--blk)">${ex.message}</div></div>`;
+  }
+}
+
+function sv(x){
+  if(x===null||x===undefined)return'';
+  if(typeof x==='number'&&isNaN(x))return'';
+  const s=String(x).trim();
+  return(s==='nan'||s==='NaT'||s==='<NA>')?'':s;
+}
+function pdate(v){
+  if(!v)return null; if(v instanceof Date)return isNaN(v)?null:v;
+  const s=sv(v); if(!s||s==='-')return null;
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+  const d=new Date(s); return isNaN(d)?null:d;
+}
+function decY(from){return(new Date()-from)/(365.25*24*3600*1000);}
+function fa(n){return n!==null?n.toFixed(2)+' ปี':'—';}
+function ft(n){return n===null?'—':n.toFixed(2)+' ปี';}
+function fdt(s){
+  if(!s||s==='-'||s==='—'||s==='n/a')return'—';
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m){
+    const yy=+m[3]+543;
+    return `${m[1].padStart(2,'0')} ${TH_MON[+m[2]-1]} ${yy}`;
+  }
+  return s;
+}
+
+// ── Photo: try multiple paths + extensions without flicker ────────────────
+// สร้าง img ที่ลอง src หลายอัน เมื่อล้มเหลวแสดง initials แทน
+function setPhoto(el, empId, fallbackText, size) {
+  // ดู photo_filename จาก emp
+  const e = em[empId];
+  if(!e || !e.photo){el.textContent=fallbackText;return;}
+  const base=e.photo.replace(/\.(jpg|jpeg|png|webp)$/i,'');
+  const tries=[''+base+'.jpg',''+base+'.jpeg',''+base+'.png','photos/'+base+'.jpg','photos/'+base+'.jpeg','photos/'+base+'.png'];
+  let idx=0;
+  const img=document.createElement('img');
+  img.style.cssText=`width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;`;
+  img.onload=()=>{ el.innerHTML=''; el.appendChild(img); };
+  img.onerror=()=>{
+    idx++;
+    if(idx<tries.length){ img.src=tries[idx]; }
+    else{ el.textContent=fallbackText; }
+  };
+  img.src=tries[0];
+}
+
+// ── Division filter ───────────────────────────────────────────────────────
+function bdf(){
+  const ds=Object.values(dm).filter(d=>d.pid==='OGC').sort((a,b)=>a.lo-b.lo);
+  const sc=document.getElementById('dvs'); sc.innerHTML='';
+  const ab=mk('button','dvb2 on','ทั้งหมด'); ab.onclick=()=>sd2('ALL'); sc.appendChild(ab);
+  ds.forEach(d=>{
+    const b=mk('button','dvb2',d.name); b.dataset.dv=d.id;
+    b.onclick=()=>sd2(d.id); sc.appendChild(b);
+  });
+}
+function sd2(id){
+  adiv=id;
+  document.querySelectorAll('.dvb2').forEach(b=>b.classList.toggle('on',(id==='ALL'&&!b.dataset.dv)||b.dataset.dv===id));
+  bt();
+}
+
+// ── Tree ──────────────────────────────────────────────────────────────────
+function bt(){
+  const root=emps.find(e=>!e.rep||e.rep==='');
+  const tw=document.getElementById('tw');
+
+  // คัดพนักงานตาม division ที่เลือก
+  const filteredEmps=adiv==='ALL'?emps:emps.filter(e=>inDiv(e.did,adiv));
+
+  if(viewMode==='grade'){
+    buildGradeView(filteredEmps);
+    return;
+  }
+
+  // Tree view (เดิม)
+  if(!root){tw.innerHTML='<div class="cm"><div>⚠️ ไม่พบ root employee</div></div>';return;}
+  tw.innerHTML='';
+  const con=mk('div');
+  con.style.cssText='display:inline-block;min-width:100%;padding-bottom:32px;';
+
+  if(adiv==='ALL'){
+    con.appendChild(rn(root,0,null));
+  } else {
+    const all=filteredEmps;
+    const heads=all.filter(e=>{
+      if(!e.rep) return true;
+      const boss=em[e.rep];
+      return !boss || !all.includes(boss);
+    });
+    const row=mk('div');
+    row.style.cssText='display:flex;justify-content:center;';
+    heads.forEach(h=>row.appendChild(rn(h,0,all)));
+    con.appendChild(row);
+  }
+  tw.appendChild(con);
+  setTimeout(dl,80);
+}
+
+function inDiv(did,div){
+  if(!did) return false;
+  // Direct match or child
+  if(did===div||did.startsWith(div+'-')) return true;
+  // Walk up dept tree
+  let d=dm[did];
+  while(d){
+    if(d.id===div) return true;
+    if(!d.pid) break;
+    d=dm[d.pid];
+  }
+  return false;
+}
+
+function rn(e,dep,al){
+  const w=mk('div');
+  w.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
+  const kids=(co[e.id]||[]).filter(k=>!al||al.includes(k));
+  const shouldCollapse=dep>=COLLAPSE_AT&&kids.length>0;
+  const crow=mk('div'); crow.style.cssText='display:flex;align-items:center;';
+  const card=mc(e,dep); card.id='c'+e.id; crow.appendChild(card);
+
+  if(kids.length>0){
+    const xb=mk('button','xbtn',shouldCollapse?'+':'−');
+    xb.title=shouldCollapse?`แสดง ${kids.length} คน`:'ซ่อน';
+    crow.appendChild(xb);
+    w.appendChild(crow);
+    const vs=mk('div','vline'); vs.style.height='22px'; w.appendChild(vs);
+    const cg=mk('div','cr'); cg.dataset.pid=e.id;
+    cg.style.cssText='display:flex;align-items:flex-start;position:relative;';
+    if(shouldCollapse) cg.style.display='none';
+    kids.forEach(child=>{
+      const cw=mk('div'); cw.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
+      const vu=mk('div','vline'); vu.style.height='16px'; cw.appendChild(vu);
+      cw.appendChild(rn(child,dep+1,al)); cg.appendChild(cw);
+    });
+    w.appendChild(cg);
+    xb.onclick=(ev)=>{
+      ev.stopPropagation();
+      const hidden=cg.style.display==='none';
+      cg.style.display=hidden?'':'none';
+      xb.textContent=hidden?'−':'+';
+      xb.title=hidden?'ซ่อน':`แสดง ${kids.length} คน`;
+      if(hidden) setTimeout(dl,60);
+    };
+  } else {
+    w.appendChild(crow);
+  }
+  return w;
+}
+
+function dl(){
+  document.querySelectorAll('.cr').forEach(row=>{
+    const old=row.querySelector(':scope>svg'); if(old) old.remove();
+    const kids=row.querySelectorAll(':scope > div'); if(kids.length<2) return;
+    const rr=row.getBoundingClientRect();
+    const xs=Array.from(kids).map(c=>{const r=c.getBoundingClientRect();return r.left+r.width/2-rr.left;});
+    const y=16;
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.style.cssText=`position:absolute;top:0;left:0;width:${row.offsetWidth}px;height:${y}px;pointer-events:none;overflow:visible;`;
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',Math.min(...xs));ln.setAttribute('x2',Math.max(...xs));
+    ln.setAttribute('y1',y);ln.setAttribute('y2',y);
+    ln.setAttribute('stroke','#D0D0D0');ln.setAttribute('stroke-width','1.5');
+    svg.appendChild(ln); row.style.position='relative'; row.insertBefore(svg,row.firstChild);
+  });
+}
+
+function mk(tag,cls,txt){
+  const el=document.createElement(tag);
+  if(cls) el.className=cls;
+  if(txt!==undefined) el.textContent=txt;
+  return el;
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────
+function mc(e,dep){
+  const acc=dep<=1?'r':dep===2?'d':dep===3?'g':'l';
+  const c=mk('div','card '+acc); c.onclick=()=>spop(e);
+  const ini=ai(e);
+  c.innerHTML=`<div class="ca"></div><div class="cb">
+    <div class="ar">
+      <div class="av" id="av_${e.id}">${ini}</div>
+      <div class="ai">
+        <div class="cn">${e.nth}</div>
+        <div class="nk">${e.nk||''}</div>
+      </div>
+    </div>
+    <div class="cp">${e.pos}</div>
+    <div class="cf">
+      <span class="lp">${e.lv||'—'}</span>
+      <div class="sr">
+        <div class="pl">${e.age!==null?e.age.toFixed(1)+' ปี':'—'}</div>
+        <div class="pl">${e.ten!==null?e.ten.toFixed(1)+' ปีงาน':'—'}</div>
+      </div>
+    </div></div>`;
+  if(e.ex1&&e.ex1.trim()) c.appendChild(mk('div','kp',e.ex1));
+  // Load photo after render (no flicker)
+  if(e.photo) setTimeout(()=>{ const el=document.getElementById('av_'+e.id); if(el) setPhoto(el,e.id,ini,'32px'); },0);
+  return c;
+}
+function ai(e){if(e.nk)return e.nk;const p=e.nth.trim().split(/\s+/);return p.length>=2?p[0][0]+p[1][0]:e.nth.slice(0,2);}
+
+// ── Popup ─────────────────────────────────────────────────────────────────
+function spop(e){
+  cemp=e;
+  const avEl=document.getElementById('pav');
+  avEl.textContent=ai(e);
+  if(e.photo) setPhoto(avEl,e.id,ai(e),'44px');
+
+  document.getElementById('pnm').textContent=e.nth;
+  document.getElementById('pne').textContent=e.nen||'';
+  document.getElementById('pps').textContent=e.pos;
+  document.getElementById('plv').textContent=e.lv||'—';
+  document.getElementById('pag').textContent=fa(e.age);
+  document.getElementById('ptn').textContent=ft(e.ten);
+  const d=dm[e.did];
+  document.getElementById('pdt').textContent=d?d.name:(e.did||'—');
+  const b=em[e.rep];
+  document.getElementById('prp').textContent=b?b.nth:'—';
+  const exr=document.getElementById('pex_row');
+  if(e.ex1){exr.style.display='';document.getElementById('pex').innerHTML=`<span class="kpb">${e.ex1}</span>`;}
+  else exr.style.display='none';
+  stab(1);
+  if(ulas){const ac=WL_DIV[ulas]||'';const ed=ged(e);if(ac==='ALL'||!ed||ed===ac)ssc(e);else rlk();}
+  else rlk();
+  document.getElementById('ov').classList.add('on');
+}
+function ged(e){let d=dm[e.did];while(d){if(d.pid==='OGC')return d.id;d=dm[d.pid];}return null;}
+function cpop(){document.getElementById('ov').classList.remove('on');}
+function cio(ev){if(ev.target===document.getElementById('ov'))cpop();}
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape')cpop();});
+function stab(n){[1,2].forEach(i=>{document.getElementById('t'+i).classList.toggle('on',i===n);document.getElementById('tc'+i).style.display=i===n?'':'none';});}
+function rlk(){document.getElementById('lks').style.display='';document.getElementById('sc').style.display='none';document.getElementById('lki2').value='';document.getElementById('lke').textContent='';}
+function tul(){
+  const pw=document.getElementById('lki2').value.trim();
+  const err=document.getElementById('lke');
+  if(!pw){err.textContent='กรุณากรอกรหัสผ่าน';return;}
+  // หา emp_id ที่ password ตรง
+  const matched=Object.keys(pwMap).find(k=>pwMap[k]===pw);
+  if(!matched){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
+  const ac=WL_DIV[matched]||'';
+  if(!ac){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
+  const ed=ged(cemp);
+  if(ac!=='ALL'&&ed&&ed!==ac){err.textContent='คุณมีสิทธิ์เฉพาะสายงานของตัวเองเท่านั้น';return;}
+  ulas=matched; ssc(cemp);
+}
+function ssc(e){
+  document.getElementById('lks').style.display='none';
+  document.getElementById('sc').style.display='';
+  document.getElementById('spa').textContent=fdt(e.pa);
+  document.getElementById('ssa').textContent=fdt(e.sa);
+  document.getElementById('spp').textContent=e.pp||'—';
+  const gc=document.getElementById('sgr'); gc.innerHTML='';
+  [[2568,e.g68],[2567,e.g67],[2566,e.g66]].forEach(([yr,g])=>{
+    const ch=mk('div','gch');
+    ch.appendChild(mk('div','gyr',String(yr)));
+    const vl=mk('div','gvl');
+    if(!g||g===''||g==='n/a'){vl.classList.add('g0');vl.textContent='n/a';}
+    else{vl.classList.add('g'+g);vl.textContent=g;}
+    ch.appendChild(vl);gc.appendChild(ch);
+  });
+}
+
+// ── Search ────────────────────────────────────────────────────────────────
+let st;
+const si=document.getElementById('si');
+function ds(){
+  clearTimeout(st);
+  st=setTimeout(()=>{
+    const q=si.value.trim().toLowerCase();
+    const cards=document.querySelectorAll('.card');
+    if(!q){cards.forEach(c=>c.classList.remove('hl','dm'));return;}
+    const mid=new Set(emps.filter(e=>
+      e.nth.toLowerCase().includes(q)||e.nen.toLowerCase().includes(q)||
+      e.id.includes(q)||e.pos.toLowerCase().includes(q)||
+      (e.nk&&e.nk.toLowerCase().includes(q))
+    ).map(e=>'c'+e.id));
+    cards.forEach(c=>{
+      if(mid.has(c.id)){c.classList.add('hl');c.classList.remove('dm');}
+      else{c.classList.add('dm');c.classList.remove('hl');}
+    });
+    document.querySelectorAll('.cr').forEach(grp=>{
+      if(grp.style.display==='none'){
+        const has=Array.from(grp.querySelectorAll('.card')).some(c=>mid.has(c.id));
+        if(has){
+          grp.style.display='';
+          const pid=grp.dataset.pid;
+          const btn=document.querySelector(`#c${pid} ~ .xbtn`);
+          if(btn){btn.textContent='−';setTimeout(dl,30);}
+        }
+      }
+    });
+    const f=document.querySelector('.card.hl');
+    if(f)f.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});
+  },200);
+}
+['input','keyup','compositionend'].forEach(ev=>si.addEventListener(ev,ds));
+
+init();
+</script>
+</body>
+</html>
