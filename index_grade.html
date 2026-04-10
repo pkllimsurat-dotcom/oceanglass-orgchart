@@ -109,26 +109,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 
 
 
-/* ── Swimlane ── */
-.swim-wrap{display:flex;width:max-content;min-width:100%;align-items:flex-start;gap:0;}
-.swim-lane{display:flex;flex-direction:column;min-width:200px;flex-shrink:0;border-right:1px solid var(--mid);}
-.swim-lane:last-child{border-right:none;}
-.swim-lane-hdr{
-  position:sticky;top:0;z-index:10;
-  padding:8px 10px;text-align:center;
-  font-size:10px;font-weight:700;color:#fff;
-  min-height:52px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:2px;
-  border-bottom:2px solid rgba(255,255,255,.2);
-}
-.swim-lane-hdr .cnt{font-size:9px;font-weight:400;opacity:.8;}
-.swim-lane-body{
-  padding:10px 6px;display:flex;flex-direction:column;
-  align-items:center;gap:10px;min-height:120px;
-}
-/* card ใน swimlane: ไม่มี margin, เล็กลงนิด */
-.swim-lane-body .card{margin:0;width:172px;}
-
 /* ── Grade Tree: accent strip by grade ── */
 .card.gt-1  .ca{background:#7B1FA2;}  /* 7(18) */
 .card.gt-2  .ca,.card.gt-3  .ca,.card.gt-4  .ca{background:#DA1F26;}   /* 6(17x) */
@@ -177,7 +157,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
   <div class="bdb" id="bc">กำลังโหลด...</div>
 </div>
 
-<div class="dvb"><div class="dvl">สายงาน :</div><div class="dvs" id="dvs"></div><div class="vtog"><button class="vbtn on" id="vTree" onclick="setView('tree')" title="แสดงแบบโครงสร้าง">🌲 โครงสร้าง</button><button class="vbtn" id="vGradeTree" onclick="setView('gradeTree')" title="โครงสร้าง + สีตาม Grade">🎯 Grade Tree</button><button class="vbtn" id="vSwim" onclick="setView('swim')" title="Swimlane ตาม Grade">🏊 Swimlane</button><button class="vbtn" id="vGrade" onclick="setView('grade')" title="เรียงตาม Job Grade">📊 Grade</button></div></div>
+<div class="dvb"><div class="dvl">สายงาน :</div><div class="dvs" id="dvs"></div><div class="vtog"><button class="vbtn on" id="vTree" onclick="setView('tree')" title="แสดงแบบโครงสร้าง">🌲 โครงสร้าง</button><button class="vbtn" id="vGradeTree" onclick="setView('gradeTree')" title="โครงสร้าง + สีตาม Grade">🎯 Grade Tree</button><button class="vbtn" id="vGrade" onclick="setView('grade')" title="เรียงตาม Job Grade">📊 Grade</button></div></div>
 <div class="lgd">
   <div class="li"><div class="ld" style="background:var(--red)"></div>MD / Executive Director</div>
   <div class="li"><div class="ld" style="background:var(--blk)"></div>Department Manager</div>
@@ -268,7 +248,6 @@ function setView(v){
   viewMode=v;
   document.getElementById('vTree').classList.toggle('on',v==='tree');
   document.getElementById('vGradeTree').classList.toggle('on',v==='gradeTree');
-  document.getElementById('vSwim').classList.toggle('on',v==='swim');
   document.getElementById('vGrade').classList.toggle('on',v==='grade');
   bt();
 }
@@ -338,73 +317,7 @@ function buildGradeView(filteredEmps){
   tw.appendChild(con);
 }
 
-// ── Swimlane view ─────────────────────────────────────────────────────────
-// สีประจำแต่ละ grade group
-const GRADE_COLOR = {
-  '7(18)':  '#6A1B9A',
-  '6(17C)': '#B71C1C', '6(17B)': '#C62828', '6(17A)': '#D32F2F',
-  '5(16)':  '#0D47A1', '5(15)':  '#1565C0', '5(14)':  '#1976D2',
-  '4(13)':  '#1A1A1A', '4(12)':  '#333333',
-  '3D(11S)':'#1B5E20', '3C(11)': '#2E7D32', '3C(10)': '#388E3C',
-  '3B(9)':  '#43A047', '3A(8)':  '#4CAF50',
-  '2C(7S)': '#E65100', '2C(7B)': '#EF6C00', '2C(7A)': '#F57C00',
-  '2B(6)':  '#546E7A', '2A(5)':  '#607D8B', '2A(4)':  '#78909C',
-  'TEMP':   '#9E9E9E',
-};
 
-function buildSwimView(filteredEmps){
-  const tw=document.getElementById('tw');
-  tw.innerHTML='';
-
-  if(!filteredEmps.length){
-    tw.innerHTML='<div class="cm"><div>ไม่พบพนักงานในสายงานนี้</div></div>';
-    return;
-  }
-
-  // Sort grade keys by rank
-  const gradeKeys=[...new Set(filteredEmps.map(e=>e.lv||'—'))]
-    .sort((a,b)=>(GRADE_ORDER[a]||50)-(GRADE_ORDER[b]||50));
-
-  const wrap=document.createElement('div');
-  wrap.className='swim-wrap';
-
-  gradeKeys.forEach(grade=>{
-    const empsInGrade=filteredEmps
-      .filter(e=>(e.lv||'—')===grade)
-      .sort((a,b)=>a.nth.localeCompare(b.nth,'th'));
-
-    const color=GRADE_COLOR[grade]||'#607D8B';
-
-    // Lane
-    const lane=document.createElement('div');
-    lane.className='swim-lane';
-
-    // Header
-    const hdr=document.createElement('div');
-    hdr.className='swim-lane-hdr';
-    hdr.style.background=color;
-    hdr.innerHTML=`<span>${grade}</span><span class="cnt">${empsInGrade.length} คน</span>`;
-    lane.appendChild(hdr);
-
-    // Cards
-    const body=document.createElement('div');
-    body.className='swim-lane-body';
-    empsInGrade.forEach(e=>{
-      const gradeRank=GRADE_ORDER[e.lv]||50;
-      const dep=gradeRank<=1?0:gradeRank<=4?1:gradeRank<=7?2:gradeRank<=9?3:4;
-      const card=mc(e,dep);
-      card.id='c'+e.id;
-      // accent color = grade color
-      const accent=card.querySelector('.ca');
-      if(accent) accent.style.background=color;
-      body.appendChild(card);
-    });
-    lane.appendChild(body);
-    wrap.appendChild(lane);
-  });
-
-  tw.appendChild(wrap);
-}
 
 async function init(){
   try{
@@ -536,10 +449,7 @@ function bt(){
     buildGradeView(filteredEmps);
     return;
   }
-  if(viewMode==='swim'){
-    buildSwimView(filteredEmps);
-    return;
-  }
+
 
   // Tree view (เดิม + gradeTree)
   if(!root){tw.innerHTML='<div class="cm"><div>⚠️ ไม่พบ root employee</div></div>';return;}
