@@ -107,6 +107,22 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .lke{color:var(--red);font-size:11px;margin-top:6px;}
 
 
+
+/* ── Grade Tree: accent strip by grade ── */
+.card.gt-1  .ca{background:#7B1FA2;}  /* 7(18) */
+.card.gt-2  .ca,.card.gt-3  .ca,.card.gt-4  .ca{background:#DA1F26;}   /* 6(17x) */
+.card.gt-5  .ca,.card.gt-6  .ca,.card.gt-7  .ca{background:#1565C0;}   /* 5(xx) */
+.card.gt-8  .ca,.card.gt-9  .ca{background:#1A1A1A;}                   /* 4(xx) */
+.card.gt-10 .ca,.card.gt-11 .ca,.card.gt-12 .ca,.card.gt-13 .ca,.card.gt-14 .ca{background:#2E7D32;} /* 3x */
+.card.gt-15 .ca,.card.gt-16 .ca,.card.gt-17 .ca{background:#F57C00;}   /* 2C */
+.card.gt-18 .ca,.card.gt-19 .ca,.card.gt-20 .ca{background:#76777B;}   /* 2A/2B */
+.card.gt-99 .ca{background:#B0BEC5;}                                    /* TEMP */
+
+/* Grade badge บน card (แทน lp) */
+.card.grade-tree-mode .lp{background:transparent;color:var(--gy);border:1px solid var(--mid);font-size:7px;}
+
+/* Sort indicator: เรียงลูกซ้าย→ขวาตาม grade สูง→ต่ำ (visual only, handled in JS) */
+
 /* ── View toggle ── */
 .vtog{display:flex;gap:6px;flex-shrink:0;margin-left:8px;}
 .vbtn{padding:4px 10px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid var(--mid);background:var(--lg);color:var(--gy);white-space:nowrap;transition:all .15s;}
@@ -140,7 +156,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
   <div class="bdb" id="bc">กำลังโหลด...</div>
 </div>
 
-<div class="dvb"><div class="dvl">สายงาน :</div><div class="dvs" id="dvs"></div><div class="vtog"><button class="vbtn on" id="vTree" onclick="setView('tree')" title="แสดงแบบโครงสร้าง">🌲 โครงสร้าง</button><button class="vbtn" id="vGrade" onclick="setView('grade')" title="เรียงตาม Job Grade">📊 Grade</button></div></div>
+<div class="dvb"><div class="dvl">สายงาน :</div><div class="dvs" id="dvs"></div><div class="vtog"><button class="vbtn on" id="vTree" onclick="setView('tree')" title="แสดงแบบโครงสร้าง">🌲 โครงสร้าง</button><button class="vbtn" id="vGradeTree" onclick="setView('gradeTree')" title="โครงสร้าง + เรียงตาม Grade">🎯 Grade Tree</button><button class="vbtn" id="vGrade" onclick="setView('grade')" title="เรียงตาม Job Grade">📊 Grade</button></div></div>
 <div class="lgd">
   <div class="li"><div class="ld" style="background:var(--red)"></div>MD / Executive Director</div>
   <div class="li"><div class="ld" style="background:var(--blk)"></div>Department Manager</div>
@@ -230,6 +246,7 @@ let adiv='ALL', ulas=null, cemp=null;
 function setView(v){
   viewMode=v;
   document.getElementById('vTree').classList.toggle('on',v==='tree');
+  document.getElementById('vGradeTree').classList.toggle('on',v==='gradeTree');
   document.getElementById('vGrade').classList.toggle('on',v==='grade');
   bt();
 }
@@ -430,7 +447,7 @@ function bt(){
     return;
   }
 
-  // Tree view (เดิม)
+  // Tree view (เดิม + gradeTree)
   if(!root){tw.innerHTML='<div class="cm"><div>⚠️ ไม่พบ root employee</div></div>';return;}
   tw.innerHTML='';
   const con=mk('div');
@@ -471,7 +488,14 @@ function inDiv(did,div){
 function rn(e,dep,al){
   const w=mk('div');
   w.style.cssText='display:inline-flex;flex-direction:column;align-items:center;';
-  const kids=(co[e.id]||[]).filter(k=>!al||al.includes(k));
+  let kids=(co[e.id]||[]).filter(k=>!al||al.includes(k));
+  // Grade Tree mode: เรียงลูกจาก grade สูง→ต่ำ (ซ้าย→ขวา)
+  if(viewMode==='gradeTree'){
+    kids=[...kids].sort((a,b)=>{
+      const oa=GRADE_ORDER[a.lv]||50, ob=GRADE_ORDER[b.lv]||50;
+      return oa-ob; // สูงสุด (เลขน้อย) ไปซ้าย
+    });
+  }
   const shouldCollapse=dep>=COLLAPSE_AT&&kids.length>0;
   const crow=mk('div'); crow.style.cssText='display:flex;align-items:center;';
   const card=mc(e,dep); card.id='c'+e.id; crow.appendChild(card);
@@ -531,8 +555,15 @@ function mk(tag,cls,txt){
 
 // ── Card ──────────────────────────────────────────────────────────────────
 function mc(e,dep){
-  const acc=dep<=1?'r':dep===2?'d':dep===3?'g':'l';
-  const c=mk('div','card '+acc); c.onclick=()=>spop(e);
+  let acc=dep<=1?'r':dep===2?'d':dep===3?'g':'l';
+  let gradeClass='';
+  if(viewMode==='gradeTree'){
+    const gradeRank=GRADE_ORDER[e.lv]||50;
+    gradeClass=' gt-'+gradeRank+' grade-tree-mode';
+    // override accent by grade instead of depth
+    acc=''; // remove depth-based accent, let gt-N CSS handle
+  }
+  const c=mk('div','card '+acc+gradeClass); c.onclick=()=>spop(e);
   const ini=ai(e);
   c.innerHTML=`<div class="ca"></div><div class="cb">
     <div class="ar">
