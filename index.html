@@ -607,7 +607,11 @@ function spop(e){
   if(e.ex1){exr.style.display='';document.getElementById('pex').innerHTML=`<span class="kpb">${e.ex1}</span>`;}
   else exr.style.display='none';
   stab(1);
-  if(ulas){const loginEmp=em[ulas];const loginDiv=loginEmp?ged(loginEmp):null;const ed=ged(e);if(!loginDiv||!ed||loginDiv===ed)ssc(e);else rlk();}
+  if(ulas){
+    const ALL_ACCESS=['168001','159029','266049'];
+    if(ALL_ACCESS.includes(ulas)){ssc(e);}
+    else{const loginEmp=em[ulas];const loginDiv=loginEmp?ged(loginEmp):null;const ed=ged(e);if(!loginDiv||!ed||loginDiv===ed)ssc(e);else rlk();}
+  }
   else rlk();
   document.getElementById('ov').classList.add('on');
 }
@@ -623,11 +627,14 @@ function tul(){
   if(!pw){err.textContent='กรุณากรอกรหัสผ่าน';return;}
   const matched=Object.keys(pwMap).find(k=>pwMap[k]===pw);
   if(!matched){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
-  // division จาก dept_id ของ user ที่ login
+  // รายชื่อ emp_id ที่เห็นได้ทุกสายงาน (ALL ACCESS)
+  // เพิ่ม/ลบได้ที่นี่
+  const ALL_ACCESS=['168001','159029','266049'];
+  if(ALL_ACCESS.includes(matched)){ulas=matched;ssc(cemp);return;}
+  // คนอื่น: เห็นแค่สายงานตัวเอง
   const loginEmp=em[matched];
   const loginDiv=loginEmp?ged(loginEmp):null;
   const empDiv=ged(cemp);
-  // loginDiv=null หมายถึงอยู่ root (OGC) เห็นได้ทุกสาย
   if(loginDiv&&empDiv&&loginDiv!==empDiv){
     err.textContent='คุณมีสิทธิ์เฉพาะสายงานของตัวเองเท่านั้น';return;
   }
