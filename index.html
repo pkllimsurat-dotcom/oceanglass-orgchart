@@ -118,23 +118,32 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .page.on{display:block;}
 
 /* ── Succession Planning page ── */
-.sp-wrap{padding:20px 14px 60px;}
-.sp-intro{font-size:12px;color:var(--gy);margin-bottom:16px;line-height:1.5;}
-.matrix-wrap{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;margin-bottom:28px;}
-.matrix-box{position:relative;width:480px;height:480px;flex-shrink:0;background:var(--wh);border:1px solid var(--mid);border-radius:8px;padding:30px 20px 50px 60px;}
+.sp-wrap{padding:16px 14px 60px;}
+.sp-intro{font-size:12px;color:var(--gy);margin-bottom:14px;line-height:1.5;}
+.matrix-box{position:relative;width:100%;height:min(72vh,640px);background:var(--wh);border:1px solid var(--mid);border-radius:8px;padding:28px 24px 56px 70px;margin-bottom:16px;}
 .matrix-quad{position:absolute;font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;color:#fff;}
-.matrix-axis-y{position:absolute;left:8px;top:50%;transform:rotate(-90deg) translateX(50%);font-size:11px;color:var(--gy);font-weight:600;white-space:nowrap;}
-.matrix-axis-x{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--gy);font-weight:600;}
+.matrix-axis-y{position:absolute;left:10px;top:50%;transform:rotate(-90deg) translateX(50%);font-size:12px;color:var(--gy);font-weight:600;white-space:nowrap;}
+.matrix-axis-x{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--gy);font-weight:600;}
 .matrix-grid{position:relative;width:100%;height:100%;border:1px solid var(--mid);}
-.matrix-dot{position:absolute;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;transform:translate(-50%,50%);transition:transform .15s;}
-.matrix-dot:hover{transform:translate(-50%,50%) scale(1.4);z-index:5;}
-.matrix-dot-label{position:absolute;font-size:8px;color:var(--blk);white-space:nowrap;pointer-events:none;background:rgba(255,255,255,.85);padding:0 2px;border-radius:2px;}
+.matrix-dot{position:absolute;width:18px;height:18px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35);cursor:pointer;transition:transform .15s;}
+.matrix-dot:hover{transform:scale(1.35);z-index:5;}
+.matrix-dot-label{position:absolute;font-size:9.5px;color:var(--blk);white-space:nowrap;pointer-events:none;background:rgba(255,255,255,.9);padding:0 3px;border-radius:2px;font-weight:500;}
 
-.sp-legend{display:flex;flex-direction:column;gap:8px;min-width:240px;}
-.sp-legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--blk);padding:8px 10px;border-radius:6px;background:var(--lg);}
+/* Legend: horizontal row below graph */
+.sp-legend-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.sp-legend-item{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--blk);padding:10px 12px;border-radius:6px;background:var(--lg);}
 .sp-legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
 .sp-legend-text{flex:1;}
 .sp-legend-action{font-size:9.5px;color:var(--gy);}
+
+/* Collapsible table section */
+.sp-table-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--lg);border-radius:6px;cursor:pointer;margin-bottom:0;transition:background .15s;}
+.sp-table-toggle:hover{background:var(--mid);}
+.sp-table-toggle-label{font-size:12px;font-weight:600;color:var(--blk);}
+.sp-table-toggle-icon{font-size:11px;color:var(--gy);transition:transform .2s;}
+.sp-table-toggle-icon.open{transform:rotate(180deg);}
+.sp-table-section{display:none;padding-top:14px;}
+.sp-table-section.open{display:block;}
 
 .sp-table-wrap{overflow-x:auto;}
 .sp-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
@@ -156,8 +165,16 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-r-3y{background:#FFE5D0;color:#A85700;}
 .sp-r-none{background:#F8D7DA;color:#721C24;}
 
-.sp-detail-pop{background:var(--wh);border-radius:12px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);}
+.sp-detail-pop{background:var(--wh);border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);}
 .sp-empty{text-align:center;padding:40px 20px;color:var(--gy);font-size:13px;}
+
+/* Score + meaning in detail popup */
+.sp-score-row{padding:8px 0;border-bottom:1px solid var(--lg);}
+.sp-score-row:last-child{border:none;}
+.sp-score-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.sp-score-label{font-size:11px;color:var(--gy);}
+.sp-score-val{font-size:13px;font-weight:700;color:var(--red);}
+.sp-score-meaning{font-size:10.5px;color:var(--blk);background:var(--lg);padding:5px 8px;border-radius:5px;line-height:1.4;}
 
 /* ── Grade Tree: accent strip by grade ── */
 .card.gt-1  .ca{background:#7B1FA2;}  /* 7(18) */
@@ -238,29 +255,34 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
     </div>
     <div id="succContent" style="display:none;">
       <div class="sp-intro" id="succIntro"></div>
-      <div class="matrix-wrap">
-        <div class="matrix-box">
-          <div class="matrix-axis-y">ผลกระทบต่อธุรกิจ (Business Impact)</div>
-          <div class="matrix-axis-x">ความเสี่ยงหากตำแหน่งว่าง (Risk of Vacancy)</div>
-          <div class="matrix-grid" id="matrixGrid"></div>
+      <div class="matrix-box">
+        <div class="matrix-axis-y">ผลกระทบต่อธุรกิจ (Business Impact)</div>
+        <div class="matrix-axis-x">ความเสี่ยงหากตำแหน่งว่าง (Risk of Vacancy)</div>
+        <div class="matrix-grid" id="matrixGrid"></div>
+      </div>
+      <div class="sp-legend-row" id="spLegend"></div>
+
+      <div class="sp-table-toggle" onclick="toggleTable()">
+        <span class="sp-table-toggle-label">📋 ดูตารางรายชื่อทั้งหมด</span>
+        <span class="sp-table-toggle-icon" id="spTableToggleIcon">▾</span>
+      </div>
+      <div class="sp-table-section" id="spTableSection">
+        <div class="sp-filter-bar" id="spFilterBar">
+          <input id="spSearchInput" class="sp-filter-input" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="applyTableFilters()"/>
+          <select id="spQuadFilter" class="sp-filter-select" onchange="applyTableFilters()">
+            <option value="">ทุก Quadrant</option>
+          </select>
+          <select id="spReadyFilter" class="sp-filter-select" onchange="applyTableFilters()">
+            <option value="">ทุกสถานะ Successor</option>
+          </select>
+          <button class="sp-filter-clear" onclick="clearTableFilters()">ล้าง filter</button>
         </div>
-        <div class="sp-legend" id="spLegend"></div>
-      </div>
-      <div class="sp-filter-bar" id="spFilterBar">
-        <input id="spSearchInput" class="sp-filter-input" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="applyTableFilters()"/>
-        <select id="spQuadFilter" class="sp-filter-select" onchange="applyTableFilters()">
-          <option value="">ทุก Quadrant</option>
-        </select>
-        <select id="spReadyFilter" class="sp-filter-select" onchange="applyTableFilters()">
-          <option value="">ทุกสถานะ Successor</option>
-        </select>
-        <button class="sp-filter-clear" onclick="clearTableFilters()">ล้าง filter</button>
-      </div>
-      <div class="sp-table-wrap">
-        <table class="sp-table" id="succTable">
-          <thead><tr id="succTableHead"></tr></thead>
-          <tbody id="succTableBody"></tbody>
-        </table>
+        <div class="sp-table-wrap">
+          <table class="sp-table" id="succTable">
+            <thead><tr id="succTableHead"></tr></thead>
+            <tbody id="succTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -985,6 +1007,15 @@ function renderLegend(){
   });
 }
 
+function toggleTable(){
+  const sec=document.getElementById('spTableSection');
+  const icon=document.getElementById('spTableToggleIcon');
+  const willOpen=!sec.classList.contains('open');
+  sec.classList.toggle('open',willOpen);
+  icon.classList.toggle('open',willOpen);
+  icon.textContent=willOpen?'▴':'▾';
+}
+
 function populateFilters(){
   const quadSel=document.getElementById('spQuadFilter');
   const readySel=document.getElementById('spReadyFilter');
@@ -1068,6 +1099,54 @@ function renderSuccTable(){
   });
 }
 
+// คำอธิบายความหมายของคะแนนแต่ละข้อ (1-5)
+const BI_MEANING={
+  1:'ขาดคนแล้วแทบไม่กระทบงาน',
+  2:'กระทบบางส่วน แต่จัดการได้ง่าย',
+  3:'กระทบต่อประสิทธิภาพทีม',
+  4:'กระทบต่อหน่วยงานหรือเป้าหมายสำคัญ',
+  5:'กระทบต่อธุรกิจ ลูกค้า รายได้ หรือการดำเนินงานหลักทันที',
+};
+const AGE_MEANING={
+  1:'อายุต่ำกว่า 50 ปี',
+  2:'อายุ 50-54 ปี',
+  3:'อายุ 55-57 ปี',
+  4:'อายุ 58-59 ปี',
+  5:'อายุ 60 ปีขึ้นไป',
+};
+const TURNOVER_MEANING={
+  1:'มีแนวโน้มอยู่ระยะยาว',
+  3:'ไม่แน่ชัด',
+  5:'มีโอกาสลาออกสูง หรือเคยแจ้งแผนเกษียณ',
+};
+const REPL_MEANING={
+  1:'หาคนได้ภายใน 1 เดือน',
+  2:'1-2 เดือน',
+  3:'3-4 เดือน',
+  4:'5-6 เดือน',
+  5:'มากกว่า 6 เดือน หรือแทบไม่มีในตลาด',
+};
+const DEV_MEANING={
+  1:'ไม่เกิน 3 เดือน',
+  2:'3-6 เดือน',
+  3:'6-12 เดือน',
+  4:'1-2 ปี',
+  5:'มากกว่า 2 ปี',
+};
+
+function scoreRow(label, val, meaningMap, highlightColor){
+  if(val===null||val===undefined||val===''){
+    return `<div class="sp-score-row">
+      <div class="sp-score-top"><span class="sp-score-label">${label}</span><span class="sp-score-val" style="color:#bbb;">—</span></div>
+    </div>`;
+  }
+  const meaning=meaningMap[val]||'';
+  return `<div class="sp-score-row">
+    <div class="sp-score-top"><span class="sp-score-label">${label}</span><span class="sp-score-val" style="color:${highlightColor||'var(--red)'}">${val} / 5</span></div>
+    ${meaning?`<div class="sp-score-meaning">${meaning}</div>`:''}
+  </div>`;
+}
+
 function showSuccDetail(d){
   const quadColor=QUAD_COLOR[d.quadrant]||'#999';
   const fileLink=d.succFile
@@ -1078,20 +1157,28 @@ function showSuccDetail(d){
   document.getElementById('succPnm').textContent=d.name;
   document.getElementById('succPne').textContent=d.kpLevel;
   document.getElementById('succPps').textContent=d.pos;
-  document.getElementById('succBody').innerHTML=`
-    <div class="ir"><span class="il">อายุ</span><span class="iv">${d.age||'—'} ปี</span></div>
-    <div class="ir"><span class="il">Business Impact</span><span class="iv r">${d.businessImpact??'—'} / 5</span></div>
-    <div class="ir"><span class="il">Age Score</span><span class="iv">${d.ageScore??'—'} / 5</span></div>
-    <div class="ir"><span class="il">แนวโน้มลาออก</span><span class="iv">${d.turnoverRisk??'—'} / 5</span></div>
-    <div class="ir"><span class="il">หาคนทดแทนยาก</span><span class="iv">${d.replDiff??'—'} / 5</span></div>
-    <div class="ir"><span class="il">ระยะเวลาพัฒนาคน</span><span class="iv">${d.devTime??'—'} / 5</span></div>
-    <div class="ir"><span class="il">Risk of Vacancy</span><span class="iv r" style="font-weight:700;">${d.riskScore??'—'} / 5</span></div>
-    <div class="ir"><span class="il">Quadrant</span><span class="iv"><span class="sp-quad-badge" style="background:${quadColor}">${d.quadrant||'—'}</span></span></div>
-    <div class="ir"><span class="il">ผู้สืบทอด</span><span class="iv">${d.succName||'—'}</span></div>
-    <div class="ir"><span class="il">ความพร้อม</span><span class="iv">${d.succReady||'—'}</span></div>
-    <div class="ir"><span class="il">Profile</span><span class="iv">${fileLink}</span></div>
-    ${d.notes?`<div class="ir"><span class="il">หมายเหตุ</span><span class="iv">${d.notes}</span></div>`:''}
-  `;
+
+  let html=`<div class="ir"><span class="il">อายุ</span><span class="iv">${d.age||'—'} ปี</span></div>`;
+  html+=scoreRow('Business Impact', d.businessImpact, BI_MEANING);
+  html+=scoreRow('Age Score', d.ageScore, AGE_MEANING, '#1565C0');
+  html+=scoreRow('แนวโน้มลาออก', d.turnoverRisk, TURNOVER_MEANING, '#1565C0');
+  html+=scoreRow('หาคนทดแทนยาก', d.replDiff, REPL_MEANING, '#1565C0');
+  html+=scoreRow('ระยะเวลาพัฒนาคน', d.devTime, DEV_MEANING, '#1565C0');
+
+  if(d.riskScore!==null){
+    html+=`<div class="sp-score-row" style="background:var(--rl);margin:6px -16px;padding:10px 16px;">
+      <div class="sp-score-top"><span class="sp-score-label" style="font-weight:700;">Risk of Vacancy (รวม)</span><span class="sp-score-val" style="font-size:15px;">${d.riskScore} / 5</span></div>
+      <div class="sp-score-meaning" style="background:transparent;padding:0;">คำนวณจาก: อายุ×20% + แนวโน้มลาออก×30% + หาคนทดแทนยาก×30% + พัฒนาคนใหม่×20%</div>
+    </div>`;
+  }
+
+  html+=`<div class="ir"><span class="il">Quadrant</span><span class="iv"><span class="sp-quad-badge" style="background:${quadColor}">${d.quadrant||'—'}</span></span></div>`;
+  html+=`<div class="ir"><span class="il">ผู้สืบทอด</span><span class="iv">${d.succName||'—'}</span></div>`;
+  html+=`<div class="ir"><span class="il">ความพร้อม</span><span class="iv">${d.succReady||'—'}</span></div>`;
+  html+=`<div class="ir"><span class="il">Profile</span><span class="iv">${fileLink}</span></div>`;
+  if(d.notes) html+=`<div class="ir"><span class="il">หมายเหตุ</span><span class="iv">${d.notes}</span></div>`;
+
+  document.getElementById('succBody').innerHTML=html;
   document.getElementById('succOv').classList.add('on');
 }
 
