@@ -137,6 +137,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-legend-action{font-size:9.5px;color:var(--gy);}
 
 .sp-table-wrap{overflow-x:auto;}
+.sp-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.sp-filter-input{flex:1;min-width:160px;border:1px solid var(--mid);border-radius:6px;padding:7px 10px;font-size:12px;outline:none;}
+.sp-filter-input:focus{border-color:var(--red);}
+.sp-filter-select{border:1px solid var(--mid);border-radius:6px;padding:7px 10px;font-size:12px;background:var(--wh);color:var(--blk);cursor:pointer;}
+.sp-filter-clear{border:1px solid var(--mid);border-radius:6px;padding:7px 12px;font-size:12px;background:var(--lg);color:var(--gy);cursor:pointer;white-space:nowrap;}
+.sp-filter-clear:hover{background:var(--red);color:#fff;border-color:var(--red);}
+.sp-row-missing{background:#FFF8E1!important;}
+.sp-missing-badge{display:inline-block;background:#E67E22;color:#fff;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;}
 .sp-table{width:100%;border-collapse:collapse;font-size:11px;}
 .sp-table th{background:var(--blk);color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0;}
 .sp-table td{padding:8px 10px;border-bottom:1px solid var(--lg);white-space:nowrap;}
@@ -237,6 +245,16 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
           <div class="matrix-grid" id="matrixGrid"></div>
         </div>
         <div class="sp-legend" id="spLegend"></div>
+      </div>
+      <div class="sp-filter-bar" id="spFilterBar">
+        <input id="spSearchInput" class="sp-filter-input" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="applyTableFilters()"/>
+        <select id="spQuadFilter" class="sp-filter-select" onchange="applyTableFilters()">
+          <option value="">ทุก Quadrant</option>
+        </select>
+        <select id="spReadyFilter" class="sp-filter-select" onchange="applyTableFilters()">
+          <option value="">ทุกสถานะ Successor</option>
+        </select>
+        <button class="sp-filter-clear" onclick="clearTableFilters()">ล้าง filter</button>
       </div>
       <div class="sp-table-wrap">
         <table class="sp-table" id="succTable">
@@ -823,13 +841,14 @@ function trySuccUnlock(){
 async function loadSuccessionData(){
   const intro=document.getElementById('succIntro');
   intro.textContent='กำลังโหลดข้อมูล...';
-  try{
-    const res=await fetch(SUCC_XL+'?v='+Date.now());
+  fetch(SUCC_XL+'?v='+Date.now()).then(res=>{
     if(!res.ok) throw new Error('ไม่พบไฟล์ '+SUCC_XL);
-    const wb=XLSX.read(await res.arrayBuffer(),{type:'array',cellDates:true});
+    return res.arrayBuffer();
+  }).then(buf=>{
+    const wb=XLSX.read(buf,{type:'array',cellDates:true});
     const ws=wb.Sheets['กรอกข้อมูล'];
     if(!ws) throw new Error("ไม่พบ Sheet 'กรอกข้อมูล' ใน "+SUCC_XL);
-    const rows=XLSX.utils.sheet_to_json(ws,{defval:'',range:1}); // skip title row, header=row2
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:'',range:1});
 
     succData=rows.filter(r=>sv(r.emp_id)&&sv(r.emp_id)!=='emp_id').map(r=>({
       eid: sv(r.emp_id),
@@ -848,15 +867,36 @@ async function loadSuccessionData(){
       succReady: sv(r.successor_readiness),
       succFile: sv(r.successor_profile_file),
       notes: sv(r.notes),
+      hasScore: true,
     }));
 
-    intro.innerHTML=`พบตำแหน่ง Key Position ทั้งหมด <b>${succData.length}</b> ตำแหน่ง — คลิกที่จุดในกราฟหรือแถวในตารางเพื่อดูรายละเอียด`;
+    // ── ตรวจหา Key Position ใหม่จาก employees.xlsx ที่ยังไม่มีใน succession.xlsx ──
+    const existingIds=new Set(succData.map(d=>d.eid));
+    const newKeyPositions=emps.filter(e=>
+      e.ex1 && e.ex1.trim() && !existingIds.has(e.id)
+    );
+    newKeyPositions.forEach(e=>{
+      succData.push({
+        eid:e.id, name:e.nth, pos:e.pos, kpLevel:e.ex1,
+        age:e.age!==null?Math.round(e.age):'', ageScore:null,
+        businessImpact:null, turnoverRisk:null, replDiff:null, devTime:null,
+        riskScore:null, quadrant:'', succName:'', succReady:'', succFile:'', notes:'',
+        hasScore:false, // ยังไม่มีคะแนน — ต้องตามไปกรอกใน succession.xlsx
+      });
+    });
+
+    const missingCount=newKeyPositions.length;
+    const missingMsg=missingCount>0
+      ?` <span style="color:#E67E22;font-weight:600;">⚠️ มี ${missingCount} ตำแหน่งใหม่ที่ยังไม่ได้กรอกคะแนน (ดูแถวสีเหลืองในตาราง)</span>`
+      :'';
+    intro.innerHTML=`พบตำแหน่ง Key Position ทั้งหมด <b>${succData.length}</b> ตำแหน่ง — คลิกที่จุดในกราฟหรือแถวในตารางเพื่อดูรายละเอียด${missingMsg}`;
     renderMatrix();
     renderLegend();
+    populateFilters();
     renderSuccTable();
-  }catch(ex){
+  }).catch(ex=>{
     intro.innerHTML=`<span style="color:var(--red)">⚠️ ${ex.message}</span>`;
-  }
+  });
 }
 
 function numOrNull(v){
@@ -883,8 +923,6 @@ function renderMatrix(){
   const grid=document.getElementById('matrixGrid');
   grid.innerHTML='';
 
-  // วาดเส้นแบ่ง quadrant ที่ค่ากลาง (3.5 บนสเกล 1-5 → normalize เป็น %)
-  // normalize: score 1→0%, score 5→100%
   const norm=(v)=>((v-1)/4)*100;
   const midX=norm(3.5), midY=norm(3.5);
 
@@ -902,16 +940,35 @@ function renderMatrix(){
     return;
   }
 
+  // จัดกลุ่มจุดที่ตำแหน่งใกล้กันมาก เพื่อ offset label ไม่ให้ทับ
+  const placed=[];
   plottable.forEach(d=>{
     const x=norm(d.riskScore), y=norm(d.businessImpact);
+    const nearbyCount=placed.filter(p=>Math.abs(p.x-x)<6&&Math.abs(p.y-y)<6).length;
+    placed.push({x,y});
+
+    const dotWrap=document.createElement('div');
+    dotWrap.style.cssText=`position:absolute;left:${x}%;bottom:${y}%;transform:translate(-50%,50%);`;
+
     const dot=document.createElement('div');
     dot.className='matrix-dot';
-    dot.style.left=x+'%';
-    dot.style.bottom=y+'%';
+    dot.style.position='relative';
+    dot.style.left='0';
+    dot.style.bottom='0';
+    dot.style.transform='none';
     dot.style.background=QUAD_COLOR[d.quadrant]||'#999';
-    dot.title=`${d.name} (${d.pos})\\nImpact: ${d.businessImpact} | Risk: ${d.riskScore}`;
+    dot.title=`${d.name} (${d.pos})\nImpact: ${d.businessImpact} | Risk: ${d.riskScore}`;
     dot.onclick=()=>showSuccDetail(d);
-    grid.appendChild(dot);
+
+    const label=document.createElement('div');
+    label.className='matrix-dot-label';
+    label.textContent=d.name.split(' ')[0];
+    const labelOffset=nearbyCount*11;
+    label.style.cssText+=`top:${-14-labelOffset}px;left:50%;transform:translateX(-50%);`;
+
+    dotWrap.appendChild(dot);
+    dotWrap.appendChild(label);
+    grid.appendChild(dotWrap);
   });
 }
 
@@ -928,24 +985,73 @@ function renderLegend(){
   });
 }
 
+function populateFilters(){
+  const quadSel=document.getElementById('spQuadFilter');
+  const readySel=document.getElementById('spReadyFilter');
+  // เก็บ option เดิม (ตัวเลือก "ทั้งหมด") แล้วเติมใหม่
+  quadSel.innerHTML='<option value="">ทุก Quadrant</option>';
+  Object.keys(QUAD_COLOR).forEach(q=>{
+    const opt=document.createElement('option'); opt.value=q; opt.textContent=q;
+    quadSel.appendChild(opt);
+  });
+  readySel.innerHTML='<option value="">ทุกสถานะ Successor</option>';
+  ['Ready Now','Ready in 1 Year','Ready in 3 Years','No Successor','—'].forEach(r=>{
+    const opt=document.createElement('option'); opt.value=r; opt.textContent=r==='—'?'ยังไม่ระบุ':r;
+    readySel.appendChild(opt);
+  });
+}
+
+function clearTableFilters(){
+  document.getElementById('spSearchInput').value='';
+  document.getElementById('spQuadFilter').value='';
+  document.getElementById('spReadyFilter').value='';
+  applyTableFilters();
+}
+
+function applyTableFilters(){
+  renderSuccTable();
+}
+
 function renderSuccTable(){
   const head=document.getElementById('succTableHead');
   const body=document.getElementById('succTableBody');
   head.innerHTML=`<th>ชื่อ</th><th>ตำแหน่ง</th><th>อายุ</th><th>Business Impact</th><th>Risk Score</th><th>Quadrant</th><th>Successor</th><th>Readiness</th>`;
   body.innerHTML='';
 
-  const sorted=[...succData].sort((a,b)=>{
+  const q=(document.getElementById('spSearchInput')?.value||'').trim().toLowerCase();
+  const quadF=document.getElementById('spQuadFilter')?.value||'';
+  const readyF=document.getElementById('spReadyFilter')?.value||'';
+
+  let filtered=succData.filter(d=>{
+    if(q && !(d.name.toLowerCase().includes(q)||d.pos.toLowerCase().includes(q))) return false;
+    if(quadF && d.quadrant!==quadF) return false;
+    if(readyF){
+      const dr=d.succReady||'—';
+      if(dr!==readyF) return false;
+    }
+    return true;
+  });
+
+  const sorted=filtered.sort((a,b)=>{
+    // แถวที่ยังไม่มีคะแนนไปอยู่บนสุด เพื่อเตือนให้กรอก
+    if(a.hasScore!==b.hasScore) return a.hasScore?1:-1;
     const ra=a.riskScore===null?-1:a.riskScore, rb=b.riskScore===null?-1:b.riskScore;
     const ba=a.businessImpact===null?-1:a.businessImpact, bb=b.businessImpact===null?-1:b.businessImpact;
     return (rb+bb)-(ra+ba);
   });
 
+  if(!sorted.length){
+    body.innerHTML='<tr><td colspan="8" class="sp-empty">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
+    return;
+  }
+
   sorted.forEach(d=>{
     const tr=document.createElement('tr');
+    if(!d.hasScore) tr.className='sp-row-missing';
     tr.onclick=()=>showSuccDetail(d);
     const quadBadge=d.quadrant
       ? `<span class="sp-quad-badge" style="background:${QUAD_COLOR[d.quadrant]||'#999'}">${d.quadrant.replace('Impact + ','/').replace('Risk','')}</span>`
-      : '<span style="color:#bbb">—</span>';
+      : (d.hasScore?'<span style="color:#bbb">—</span>':'<span class="sp-missing-badge">ยังไม่กรอกคะแนน</span>');
     const readyCls={'Ready Now':'sp-r-now','Ready in 1 Year':'sp-r-1y','Ready in 3 Years':'sp-r-3y','No Successor':'sp-r-none'}[d.succReady]||'';
     const readyBadge=d.succReady?`<span class="sp-readiness ${readyCls}">${d.succReady}</span>`:'—';
     tr.innerHTML=`
