@@ -141,7 +141,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 @media(max-width:420px){.sp-legend-row{grid-template-columns:1fr;}}
 
 /* Collapsible table section */
-.sp-table-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--lg);border-radius:6px;cursor:pointer;margin-bottom:0;transition:background .15s;}
+.sp-table-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--lg);border-radius:6px;cursor:pointer;transition:background .15s;}
+.sp-export-btn{background:var(--blk);color:#fff;border:none;border-radius:6px;padding:10px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.sp-export-btn:hover{background:var(--red);}
 .sp-table-toggle:hover{background:var(--mid);}
 .sp-table-toggle-label{font-size:12px;font-weight:600;color:var(--blk);}
 .sp-table-toggle-icon{font-size:11px;color:var(--gy);transition:transform .2s;}
@@ -264,13 +266,16 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
           <div class="matrix-axis-y-wrap"><div class="matrix-axis-y">ผลกระทบต่อธุรกิจ (Business Impact)</div></div>
           <div class="matrix-grid" id="matrixGrid"></div>
         </div>
-        <div class="matrix-axis-x">ความเสี่ยงหากตำแหน่งว่าง (Risk of Vacancy)</div>
+        <div class="matrix-axis-x">ผลกระทบหากตำแหน่งนี้ว่าง (Risk of Vacancy)</div>
       </div>
       <div class="sp-legend-row" id="spLegend"></div>
 
-      <div class="sp-table-toggle" onclick="toggleTable()">
-        <span class="sp-table-toggle-label">📋 ดูตารางรายชื่อทั้งหมด</span>
-        <span class="sp-table-toggle-icon" id="spTableToggleIcon">▾</span>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div class="sp-table-toggle" style="flex:1;" onclick="toggleTable()">
+          <span class="sp-table-toggle-label">📋 ดูตารางรายชื่อทั้งหมด</span>
+          <span class="sp-table-toggle-icon" id="spTableToggleIcon">▾</span>
+        </div>
+        <button class="sp-export-btn" onclick="exportSuccession()">⬇ Export Excel</button>
       </div>
       <div class="sp-table-section" id="spTableSection">
         <div class="sp-filter-bar" id="spFilterBar">
@@ -1020,6 +1025,86 @@ function toggleTable(){
   sec.classList.toggle('open',willOpen);
   icon.classList.toggle('open',willOpen);
   icon.textContent=willOpen?'▴':'▾';
+}
+
+function exportSuccession(){
+  // รวมข้อมูลเดิม (มีคะแนนแล้ว) + ข้อมูลใหม่ (ยังไม่มีคะแนน) เรียงตาม hasScore
+  const rows=[];
+
+  // ข้อมูลที่มีคะแนนแล้ว (จาก succession.xlsx เดิม)
+  succData.filter(d=>d.hasScore).forEach(d=>{
+    const e=em[d.eid];
+    rows.push({
+      emp_id: d.eid,
+      name_th: d.name,
+      position: d.pos,
+      key_position_level: d.kpLevel,
+      birth_date: e&&e.bd ? (e.bd instanceof Date ? e.bd.toLocaleDateString('en-GB') : d.age||'') : '',
+      age: d.age,
+      age_score: d.ageScore,
+      business_impact: d.businessImpact,
+      turnover_risk: d.turnoverRisk,
+      replacement_difficulty: d.replDiff,
+      development_time: d.devTime,
+      risk_of_vacancy_score: d.riskScore,
+      quadrant: d.quadrant,
+      successor_name: d.succName,
+      successor_readiness: d.succReady,
+      successor_profile_file: d.succFile,
+      notes: d.notes,
+    });
+  });
+
+  // ข้อมูลใหม่ที่ยังไม่มีคะแนน (Key Position ใหม่จาก employees.xlsx)
+  succData.filter(d=>!d.hasScore).forEach(d=>{
+    const e=em[d.eid];
+    const bd=e&&e.bd?e.bd:null;
+    let bdStr='';
+    if(bd){
+      const dd=String(bd.getDate()).padStart(2,'0');
+      const mm=String(bd.getMonth()+1).padStart(2,'0');
+      bdStr=`${dd}/${mm}/${bd.getFullYear()}`;
+    }
+    rows.push({
+      emp_id: d.eid,
+      name_th: d.name,
+      position: d.pos,
+      key_position_level: d.kpLevel,
+      birth_date: bdStr,
+      age: e&&e.age!==null?Math.round(e.age):'',
+      age_score: d.ageScore||'',
+      business_impact: '',
+      turnover_risk: '',
+      replacement_difficulty: '',
+      development_time: '',
+      risk_of_vacancy_score: '',
+      quadrant: '',
+      successor_name: '',
+      successor_readiness: '',
+      successor_profile_file: '',
+      notes: 'ยังไม่ได้กรอกคะแนน',
+    });
+  });
+
+  const ws=XLSX.utils.json_to_sheet(rows);
+
+  // กำหนดความกว้างคอลัมน์
+  const wscols=[
+    {wch:11},{wch:22},{wch:36},{wch:16},
+    {wch:13},{wch:7},{wch:10},
+    {wch:14},{wch:13},{wch:18},{wch:16},
+    {wch:18},{wch:24},
+    {wch:20},{wch:18},{wch:26},{wch:28}
+  ];
+  ws['!cols']=wscols;
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,'กรอกข้อมูล',ws);
+
+  // ใส่ as_of row ด้านบน (row 1 ตาม format เดิม) — ทำโดยใช้ sheet_add_aoa
+  XLSX.utils.sheet_add_aoa(ws,[['as_of_date='+new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})]],{origin:'A1',shiftRows:true});
+
+  XLSX.writeFile(wb,'succession_export.xlsx');
 }
 
 function populateFilters(){
