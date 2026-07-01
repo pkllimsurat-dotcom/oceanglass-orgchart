@@ -1028,82 +1028,54 @@ function toggleTable(){
 }
 
 function exportSuccession(){
-  // รวมข้อมูลเดิม (มีคะแนนแล้ว) + ข้อมูลใหม่ (ยังไม่มีคะแนน) เรียงตาม hasScore
-  const rows=[];
+  const hdrs=['emp_id','name_th','position','key_position_level','birth_date','age','age_score',
+    'business_impact','turnover_risk','replacement_difficulty','development_time',
+    'risk_of_vacancy_score','quadrant','successor_name','successor_readiness',
+    'successor_profile_file','notes'];
 
-  // ข้อมูลที่มีคะแนนแล้ว (จาก succession.xlsx เดิม)
+  // สร้าง array of arrays (header row แรก, data rows ถัดไป)
+  const aoa=[hdrs];
+
+  // ข้อมูลที่มีคะแนนแล้ว
   succData.filter(d=>d.hasScore).forEach(d=>{
     const e=em[d.eid];
-    rows.push({
-      emp_id: d.eid,
-      name_th: d.name,
-      position: d.pos,
-      key_position_level: d.kpLevel,
-      birth_date: e&&e.bd ? (e.bd instanceof Date ? e.bd.toLocaleDateString('en-GB') : d.age||'') : '',
-      age: d.age,
-      age_score: d.ageScore,
-      business_impact: d.businessImpact,
-      turnover_risk: d.turnoverRisk,
-      replacement_difficulty: d.replDiff,
-      development_time: d.devTime,
-      risk_of_vacancy_score: d.riskScore,
-      quadrant: d.quadrant,
-      successor_name: d.succName,
-      successor_readiness: d.succReady,
-      successor_profile_file: d.succFile,
-      notes: d.notes,
-    });
+    let bdStr='';
+    if(e&&e.bd){const b=e.bd;bdStr=`${String(b.getDate()).padStart(2,'0')}/${String(b.getMonth()+1).padStart(2,'0')}/${b.getFullYear()}`;}
+    aoa.push([d.eid,d.name,d.pos,d.kpLevel,bdStr,d.age,d.ageScore,
+      d.businessImpact,d.turnoverRisk,d.replDiff,d.devTime,
+      d.riskScore,d.quadrant,d.succName,d.succReady,d.succFile,d.notes]);
   });
 
-  // ข้อมูลใหม่ที่ยังไม่มีคะแนน (Key Position ใหม่จาก employees.xlsx)
+  // Key Position ใหม่ที่ยังไม่มีคะแนน
   succData.filter(d=>!d.hasScore).forEach(d=>{
     const e=em[d.eid];
-    const bd=e&&e.bd?e.bd:null;
-    let bdStr='';
-    if(bd){
-      const dd=String(bd.getDate()).padStart(2,'0');
-      const mm=String(bd.getMonth()+1).padStart(2,'0');
-      bdStr=`${dd}/${mm}/${bd.getFullYear()}`;
+    let bdStr='',ageVal='',ageScore='';
+    if(e&&e.bd){
+      const b=e.bd;
+      bdStr=`${String(b.getDate()).padStart(2,'0')}/${String(b.getMonth()+1).padStart(2,'0')}/${b.getFullYear()}`;
     }
-    rows.push({
-      emp_id: d.eid,
-      name_th: d.name,
-      position: d.pos,
-      key_position_level: d.kpLevel,
-      birth_date: bdStr,
-      age: e&&e.age!==null?Math.round(e.age):'',
-      age_score: d.ageScore||'',
-      business_impact: '',
-      turnover_risk: '',
-      replacement_difficulty: '',
-      development_time: '',
-      risk_of_vacancy_score: '',
-      quadrant: '',
-      successor_name: '',
-      successor_readiness: '',
-      successor_profile_file: '',
-      notes: 'ยังไม่ได้กรอกคะแนน',
-    });
+    if(e&&e.age!==null){
+      ageVal=Math.round(e.age);
+      const a=ageVal;
+      ageScore=a<50?1:a<55?2:a<58?3:a<60?4:5;
+    }
+    aoa.push([d.eid,d.name,d.pos,d.kpLevel,bdStr,ageVal,ageScore,
+      '','','','','','','','','','ยังไม่ได้กรอกคะแนน']);
   });
 
-  const ws=XLSX.utils.json_to_sheet(rows);
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
 
-  // กำหนดความกว้างคอลัมน์
-  const wscols=[
+  // ความกว้างคอลัมน์
+  ws['!cols']=[
     {wch:11},{wch:22},{wch:36},{wch:16},
     {wch:13},{wch:7},{wch:10},
     {wch:14},{wch:13},{wch:18},{wch:16},
     {wch:18},{wch:24},
     {wch:20},{wch:18},{wch:26},{wch:28}
   ];
-  ws['!cols']=wscols;
 
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,'กรอกข้อมูล',ws);
-
-  // ใส่ as_of row ด้านบน (row 1 ตาม format เดิม) — ทำโดยใช้ sheet_add_aoa
-  XLSX.utils.sheet_add_aoa(ws,[['as_of_date='+new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})]],{origin:'A1',shiftRows:true});
-
   XLSX.writeFile(wb,'succession_export.xlsx');
 }
 
