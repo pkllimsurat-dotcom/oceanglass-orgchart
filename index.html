@@ -1033,7 +1033,6 @@ function exportSuccession(){
     'risk_of_vacancy_score','quadrant','successor_name','successor_readiness',
     'successor_profile_file','notes'];
 
-  // สร้าง array of arrays (header row แรก, data rows ถัดไป)
   const aoa=[hdrs];
 
   // ข้อมูลที่มีคะแนนแล้ว
@@ -1043,7 +1042,7 @@ function exportSuccession(){
     if(e&&e.bd){const b=e.bd;bdStr=`${String(b.getDate()).padStart(2,'0')}/${String(b.getMonth()+1).padStart(2,'0')}/${b.getFullYear()}`;}
     aoa.push([d.eid,d.name,d.pos,d.kpLevel,bdStr,d.age,d.ageScore,
       d.businessImpact,d.turnoverRisk,d.replDiff,d.devTime,
-      d.riskScore,d.quadrant,d.succName,d.succReady,d.succFile,d.notes]);
+      d.riskScore,d.quadrant,d.succName,d.succReady,d.succFile,d.notes||'']);
   });
 
   // Key Position ใหม่ที่ยังไม่มีคะแนน
@@ -1056,16 +1055,13 @@ function exportSuccession(){
     }
     if(e&&e.age!==null){
       ageVal=Math.round(e.age);
-      const a=ageVal;
-      ageScore=a<50?1:a<55?2:a<58?3:a<60?4:5;
+      ageScore=ageVal<50?1:ageVal<55?2:ageVal<58?3:ageVal<60?4:5;
     }
     aoa.push([d.eid,d.name,d.pos,d.kpLevel,bdStr,ageVal,ageScore,
       '','','','','','','','','','ยังไม่ได้กรอกคะแนน']);
   });
 
   const ws=XLSX.utils.aoa_to_sheet(aoa);
-
-  // ความกว้างคอลัมน์
   ws['!cols']=[
     {wch:11},{wch:22},{wch:36},{wch:16},
     {wch:13},{wch:7},{wch:10},
@@ -1074,8 +1070,10 @@ function exportSuccession(){
     {wch:20},{wch:18},{wch:26},{wch:28}
   ];
 
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,'กรอกข้อมูล',ws);
+  // ใช้ manual wb object หลีกเลี่ยง bug ของ book_append_sheet
+  const sheetName='KeyPositions';
+  const wb={SheetNames:[sheetName],Sheets:{}};
+  wb.Sheets[sheetName]=ws;
   XLSX.writeFile(wb,'succession_export.xlsx');
 }
 
