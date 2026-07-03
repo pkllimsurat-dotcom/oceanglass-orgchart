@@ -887,7 +887,7 @@ async function loadSuccessionData(){
       eid: sv(r.emp_id),
       name: sv(r.name_th),
       pos: sv(r.position),
-      kpLevel: sv(r.key_position_level),
+      kpLevel: sv((em[sv(r.emp_id)] && em[sv(r.emp_id)].ex1) ? em[sv(r.emp_id)].ex1 : r.key_position_level),
       age: sv(r.age),
       ageScore: numOrNull(r.age_score),
       businessImpact: numOrNull(r.business_impact),
@@ -1040,7 +1040,7 @@ function exportSuccession(){
     const e=em[d.eid];
     let bdStr='';
     if(e&&e.bd){const b=e.bd;bdStr=`${String(b.getDate()).padStart(2,'0')}/${String(b.getMonth()+1).padStart(2,'0')}/${b.getFullYear()}`;}
-    aoa.push([d.eid,d.name,d.pos,d.kpLevel,bdStr,d.age,d.ageScore,
+    aoa.push([d.eid,d.name,d.pos,(em[d.eid]&&em[d.eid].ex1)||d.kpLevel,bdStr,d.age,d.ageScore,
       d.businessImpact,d.turnoverRisk,d.replDiff,d.devTime,
       d.riskScore,d.quadrant,d.succName,d.succReady,d.succFile,d.notes||'']);
   });
@@ -1057,7 +1057,7 @@ function exportSuccession(){
       ageVal=Math.round(e.age);
       ageScore=ageVal<50?1:ageVal<55?2:ageVal<58?3:ageVal<60?4:5;
     }
-    aoa.push([d.eid,d.name,d.pos,d.kpLevel,bdStr,ageVal,ageScore,
+    aoa.push([d.eid,d.name,d.pos,(em[d.eid]&&em[d.eid].ex1)||d.kpLevel,bdStr,ageVal,ageScore,
       '','','','','','','','','','ยังไม่ได้กรอกคะแนน']);
   });
 
