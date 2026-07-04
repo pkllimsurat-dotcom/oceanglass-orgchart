@@ -275,7 +275,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
           <span class="sp-table-toggle-label">📋 ดูตารางรายชื่อทั้งหมด</span>
           <span class="sp-table-toggle-icon" id="spTableToggleIcon">▾</span>
         </div>
-        <button class="sp-export-btn" onclick="exportSuccession()">⬇ Export Excel</button>
+        <button class="sp-export-btn" onclick="exportSuccession()">⬇ Export ข้อมูลดิบ (ส่งกลับให้ Claude แปลงเป็นไฟล์สวย)</button>
       </div>
       <div class="sp-table-section" id="spTableSection">
         <div class="sp-filter-bar" id="spFilterBar">
@@ -1074,7 +1074,7 @@ function exportSuccession(){
   const sheetName='KeyPositions';
   const wb={SheetNames:[sheetName],Sheets:{}};
   wb.Sheets[sheetName]=ws;
-  XLSX.writeFile(wb,'succession_export.xlsx');
+  XLSX.writeFile(wb,'succession_raw_export.xlsx');
 }
 
 function populateFilters(){
