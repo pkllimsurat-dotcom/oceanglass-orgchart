@@ -530,7 +530,15 @@ function sv(x){
   return(s==='nan'||s==='NaT'||s==='<NA>')?'':s;
 }
 function pdate(v){
-  if(!v)return null; if(v instanceof Date)return isNaN(v)?null:v;
+  if(!v)return null;
+  if(v instanceof Date){
+    if(isNaN(v))return null;
+    // ปัดเศษเวลาที่คลาดเคลื่อนจาก floating-point ของ Excel serial date
+    // (บาง cell มีวินาทีเพี้ยนเล็กน้อย เช่น 23:59:56 แทนที่จะเป็นเที่ยงคืนพอดี
+    //  ทำให้คำนวณวันผิดไป 1 วัน) — ปัดให้ตรงวันที่ถูกต้องเสมอ
+    const rounded=Math.round(v.getTime()/86400000)*86400000;
+    return new Date(rounded);
+  }
   const s=sv(v); if(!s||s==='-')return null;
   const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if(m)return new Date(+m[3],+m[2]-1,+m[1]);
