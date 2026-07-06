@@ -275,7 +275,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
           <span class="sp-table-toggle-label">📋 ดูตารางรายชื่อทั้งหมด</span>
           <span class="sp-table-toggle-icon" id="spTableToggleIcon">▾</span>
         </div>
-        <button class="sp-export-btn" onclick="exportSuccession()">⬇ Export ข้อมูลดิบ (ส่งกลับให้ Claude แปลงเป็นไฟล์สวย)</button>
+        <button class="sp-export-btn" id="spExportBtn" onclick="exportSuccession()" style="display:none;">⬇ Export ข้อมูล (Admin)</button>
       </div>
       <div class="sp-table-section" id="spTableSection">
         <div class="sp-filter-bar" id="spFilterBar">
@@ -868,6 +868,9 @@ function trySuccUnlock(){
   succUnlocked=true;
   document.getElementById('succLockScreen').style.display='none';
   document.getElementById('succContent').style.display='';
+  // ปุ่ม Export เห็นเฉพาะ emp_id 266049 เท่านั้น (hardcode ตายตัว ไม่ผูกกับ ALL_ACCESS)
+  const SUCC_EXPORT_ADMIN='266049';
+  document.getElementById('spExportBtn').style.display=(matched===SUCC_EXPORT_ADMIN)?'':'none';
   loadSuccessionData();
 }
 
@@ -1074,7 +1077,7 @@ function exportSuccession(){
   const sheetName='KeyPositions';
   const wb={SheetNames:[sheetName],Sheets:{}};
   wb.Sheets[sheetName]=ws;
-  XLSX.writeFile(wb,'succession_raw_export.xlsx');
+  XLSX.writeFile(wb,'succession_admin_export.xlsx');
 }
 
 function populateFilters(){
