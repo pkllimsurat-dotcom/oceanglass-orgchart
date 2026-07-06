@@ -1042,7 +1042,7 @@ function exportSuccession(){
   succData.filter(d=>d.hasScore).forEach(d=>{
     const e=em[d.eid];
     let bdStr='';
-    if(e&&e.bd){const b=e.bd;bdStr=`${String(b.getDate()).padStart(2,'0')}/${String(b.getMonth()+1).padStart(2,'0')}/${b.getFullYear()}`;}
+    if(e&&e.bd){const b=e.bd;bdStr=`${String(b.getUTCDate()).padStart(2,'0')}/${String(b.getUTCMonth()+1).padStart(2,'0')}/${b.getUTCFullYear()}`;}
     aoa.push([d.eid,d.name,d.pos,(em[d.eid]&&em[d.eid].ex1)||d.kpLevel,bdStr,d.age,d.ageScore,
       d.businessImpact,d.turnoverRisk,d.replDiff,d.devTime,
       d.riskScore,d.quadrant,d.succName,d.succReady,d.succFile,d.notes||'']);
@@ -1054,7 +1054,7 @@ function exportSuccession(){
     let bdStr='',ageVal='',ageScore='';
     if(e&&e.bd){
       const b=e.bd;
-      bdStr=`${String(b.getDate()).padStart(2,'0')}/${String(b.getMonth()+1).padStart(2,'0')}/${b.getFullYear()}`;
+      bdStr=`${String(b.getUTCDate()).padStart(2,'0')}/${String(b.getUTCMonth()+1).padStart(2,'0')}/${b.getUTCFullYear()}`;
     }
     if(e&&e.age!==null){
       ageVal=Math.round(e.age);
