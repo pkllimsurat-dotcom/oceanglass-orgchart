@@ -266,7 +266,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
           <div class="matrix-axis-y-wrap"><div class="matrix-axis-y">ผลกระทบต่อธุรกิจ (Business Impact)</div></div>
           <div class="matrix-grid" id="matrixGrid"></div>
         </div>
-        <div class="matrix-axis-x">ผลกระทบหากตำแหน่งนี้ว่าง (Risk of Vacancy)</div>
+        <div class="matrix-axis-x">ผลกระทบหากตำแหน่งนี้ว่าง (Vacancy Impact)</div>
       </div>
       <div class="sp-legend-row" id="spLegend"></div>
 
@@ -280,6 +280,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
       <div class="sp-table-section" id="spTableSection">
         <div class="sp-filter-bar" id="spFilterBar">
           <input id="spSearchInput" class="sp-filter-input" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="applyTableFilters()"/>
+          <select id="spDivFilter" class="sp-filter-select" onchange="applyTableFilters()">
+            <option value="">ทุกสายงาน</option>
+          </select>
           <select id="spQuadFilter" class="sp-filter-select" onchange="applyTableFilters()">
             <option value="">ทุก Quadrant</option>
           </select>
@@ -578,12 +581,27 @@ function setPhoto(el, empId, fallbackText, size) {
 }
 
 // ── Division filter ───────────────────────────────────────────────────────
+// ตัวย่อสายงาน — key = dept_id (คงที่แม้ชื่อเต็มจะเปลี่ยน) ถ้าไม่เจอใน map จะใช้ชื่อเต็มแทน (รองรับสายงานใหม่ในอนาคต)
+const DIV_ABBR={
+  'OGC-CCD':'CCD',
+  'OGC-CHR':'CHR',
+  'OGC-FAD':'FAIP',
+  'OGC-MFG':'MFG',
+  'OGC-MKT':'MKT',
+  'OGC-000-QMT':'QMT',
+  'OGC-000-000-STR':'Strategic Planning',
+};
+function divLabel(dept){
+  return DIV_ABBR[dept.id] || dept.name;
+}
+
 function bdf(){
   const ds=Object.values(dm).filter(d=>d.pid==='OGC').sort((a,b)=>a.lo-b.lo);
   const sc=document.getElementById('dvs'); sc.innerHTML='';
   const ab=mk('button','dvb2 on','ทั้งหมด'); ab.onclick=()=>sd2('ALL'); sc.appendChild(ab);
   ds.forEach(d=>{
-    const b=mk('button','dvb2',d.name); b.dataset.dv=d.id;
+    const b=mk('button','dvb2',divLabel(d)); b.dataset.dv=d.id;
+    b.title=d.name;
     b.onclick=()=>sd2(d.id); sc.appendChild(b);
   });
 }
@@ -911,6 +929,8 @@ async function loadSuccessionData(){
       succReady: sv(r.successor_readiness),
       succFile: sv(r.successor_profile_file),
       notes: sv(r.notes),
+      // สายงาน: ใช้ค่าจาก Excel ถ้ามี ไม่งั้นคำนวณจาก dept_id อัตโนมัติ (รองรับสายงานใหม่ในอนาคต)
+      division: sv(r['สายงาน']) || computeDivision(sv(r.emp_id)),
       hasScore: true,
     }));
 
@@ -925,6 +945,7 @@ async function loadSuccessionData(){
         age:e.age!==null?Math.round(e.age):'', ageScore:null,
         businessImpact:null, turnoverRisk:null, replDiff:null, devTime:null,
         riskScore:null, quadrant:'', succName:'', succReady:'', succFile:'', notes:'',
+        division: computeDivision(e.id),
         hasScore:false, // ยังไม่มีคะแนน — ต้องตามไปกรอกใน succession.xlsx
       });
     });
@@ -941,6 +962,15 @@ async function loadSuccessionData(){
   }).catch(ex=>{
     intro.innerHTML=`<span style="color:var(--red)">⚠️ ${ex.message}</span>`;
   });
+}
+
+function computeDivision(eid){
+  const e=em[eid];
+  if(!e) return '';
+  const d=ged(e); // dept_id ของสายงาน (level 2)
+  if(!d) return '';
+  const dept=dm[d];
+  return dept?divLabel(dept):d;
 }
 
 function numOrNull(v){
@@ -1042,7 +1072,7 @@ function exportSuccession(){
   const hdrs=['emp_id','name_th','position','key_position_level','birth_date','age','age_score',
     'business_impact','turnover_risk','replacement_difficulty','development_time',
     'risk_of_vacancy_score','quadrant','successor_name','successor_readiness',
-    'successor_profile_file','notes'];
+    'successor_profile_file','notes','','สายงาน'];
 
   const aoa=[hdrs];
 
@@ -1053,7 +1083,7 @@ function exportSuccession(){
     if(e&&e.bd){const b=e.bd;bdStr=`${String(b.getUTCDate()).padStart(2,'0')}/${String(b.getUTCMonth()+1).padStart(2,'0')}/${b.getUTCFullYear()}`;}
     aoa.push([d.eid,d.name,d.pos,(em[d.eid]&&em[d.eid].ex1)||d.kpLevel,bdStr,d.age,d.ageScore,
       d.businessImpact,d.turnoverRisk,d.replDiff,d.devTime,
-      d.riskScore,d.quadrant,d.succName,d.succReady,d.succFile,d.notes||'']);
+      d.riskScore,d.quadrant,d.succName,d.succReady,d.succFile,d.notes||'','',d.division||computeDivision(d.eid)]);
   });
 
   // Key Position ใหม่ที่ยังไม่มีคะแนน
@@ -1069,7 +1099,7 @@ function exportSuccession(){
       ageScore=ageVal<50?1:ageVal<55?2:ageVal<58?3:ageVal<60?4:5;
     }
     aoa.push([d.eid,d.name,d.pos,(em[d.eid]&&em[d.eid].ex1)||d.kpLevel,bdStr,ageVal,ageScore,
-      '','','','','','','','','','ยังไม่ได้กรอกคะแนน']);
+      '','','','','','','','','','ยังไม่ได้กรอกคะแนน','',d.division||computeDivision(d.eid)]);
   });
 
   const ws=XLSX.utils.aoa_to_sheet(aoa);
@@ -1078,7 +1108,8 @@ function exportSuccession(){
     {wch:13},{wch:7},{wch:10},
     {wch:14},{wch:13},{wch:18},{wch:16},
     {wch:18},{wch:24},
-    {wch:20},{wch:18},{wch:26},{wch:28}
+    {wch:20},{wch:18},{wch:26},{wch:28},
+    {wch:3},{wch:14}
   ];
 
   // ใช้ manual wb object หลีกเลี่ยง bug ของ book_append_sheet
@@ -1089,9 +1120,18 @@ function exportSuccession(){
 }
 
 function populateFilters(){
+  const divSel=document.getElementById('spDivFilter');
   const quadSel=document.getElementById('spQuadFilter');
   const readySel=document.getElementById('spReadyFilter');
-  // เก็บ option เดิม (ตัวเลือก "ทั้งหมด") แล้วเติมใหม่
+
+  // สายงาน — เติมแบบ dynamic จากข้อมูลจริง รองรับสายงานใหม่/เก่าถูกลบในอนาคตอัตโนมัติ
+  divSel.innerHTML='<option value="">ทุกสายงาน</option>';
+  const divs=[...new Set(succData.map(d=>d.division).filter(v=>v))].sort();
+  divs.forEach(dv=>{
+    const opt=document.createElement('option'); opt.value=dv; opt.textContent=dv;
+    divSel.appendChild(opt);
+  });
+
   quadSel.innerHTML='<option value="">ทุก Quadrant</option>';
   Object.keys(QUAD_COLOR).forEach(q=>{
     const opt=document.createElement('option'); opt.value=q; opt.textContent=q;
@@ -1106,6 +1146,7 @@ function populateFilters(){
 
 function clearTableFilters(){
   document.getElementById('spSearchInput').value='';
+  document.getElementById('spDivFilter').value='';
   document.getElementById('spQuadFilter').value='';
   document.getElementById('spReadyFilter').value='';
   applyTableFilters();
@@ -1118,15 +1159,17 @@ function applyTableFilters(){
 function renderSuccTable(){
   const head=document.getElementById('succTableHead');
   const body=document.getElementById('succTableBody');
-  head.innerHTML=`<th>ชื่อ</th><th>ตำแหน่ง</th><th>อายุ</th><th>Business Impact</th><th>Risk Score</th><th>Quadrant</th><th>Successor</th><th>Readiness</th>`;
+  head.innerHTML=`<th>ชื่อ</th><th>สายงาน</th><th>ตำแหน่ง</th><th>อายุ</th><th>Business Impact</th><th>Risk Score</th><th>Quadrant</th><th>Successor</th><th>Readiness</th>`;
   body.innerHTML='';
 
   const q=(document.getElementById('spSearchInput')?.value||'').trim().toLowerCase();
+  const divF=document.getElementById('spDivFilter')?.value||'';
   const quadF=document.getElementById('spQuadFilter')?.value||'';
   const readyF=document.getElementById('spReadyFilter')?.value||'';
 
   let filtered=succData.filter(d=>{
     if(q && !(d.name.toLowerCase().includes(q)||d.pos.toLowerCase().includes(q))) return false;
+    if(divF && d.division!==divF) return false;
     if(quadF && d.quadrant!==quadF) return false;
     if(readyF){
       const dr=d.succReady||'—';
@@ -1144,7 +1187,7 @@ function renderSuccTable(){
   });
 
   if(!sorted.length){
-    body.innerHTML='<tr><td colspan="8" class="sp-empty">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
+    body.innerHTML='<tr><td colspan="9" class="sp-empty">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
     return;
   }
 
@@ -1159,6 +1202,7 @@ function renderSuccTable(){
     const readyBadge=d.succReady?`<span class="sp-readiness ${readyCls}">${d.succReady}</span>`:'—';
     tr.innerHTML=`
       <td><b>${d.name}</b></td>
+      <td>${d.division||'—'}</td>
       <td>${d.pos}</td>
       <td>${d.age||'—'}</td>
       <td>${d.businessImpact??'—'}</td>
