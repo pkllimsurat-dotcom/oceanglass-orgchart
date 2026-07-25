@@ -203,22 +203,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-score-val{font-size:13px;font-weight:700;color:var(--red);}
 .sp-score-meaning{font-size:10.5px;color:var(--blk);background:var(--lg);padding:5px 8px;border-radius:5px;line-height:1.4;}
 
-/* ── Validation warning banner ── */
-.val-banner{background:#FFF3CD;border-bottom:2px solid #E67E22;}
-.val-banner.val-banner-info{background:#E7F3FA;border-bottom:2px solid #3498DB;}
-.val-banner.val-banner-info .val-banner-title,.val-banner.val-banner-info .val-banner-toggle,.val-banner.val-banner-info .val-banner-close{color:#0D5C8A;}
-.val-banner-head{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;}
-.val-banner-icon{font-size:14px;flex-shrink:0;}
-.val-banner-title{font-size:12px;font-weight:700;color:#7A4A00;flex:1;}
-.val-banner-toggle{font-size:11px;color:#7A4A00;transition:transform .2s;flex-shrink:0;}
-.val-banner-toggle.open{transform:rotate(180deg);}
-.val-banner-close{background:none;border:none;color:#7A4A00;font-size:13px;cursor:pointer;flex-shrink:0;padding:2px 6px;}
-.val-banner-close:hover{color:#000;}
-.val-banner-body{display:none;padding:0 14px 12px 36px;}
-.val-banner-body.open{display:block;}
-.val-banner-item{font-size:11px;color:#5C3A00;padding:4px 0;line-height:1.5;}
-.val-banner-item b{color:#B01920;}
-
 
 /* ── Grade Tree: accent strip by grade ── */
 .card.gt-1  .ca{background:#7B1FA2;}  /* 7(18) */
@@ -266,16 +250,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
   </div>
   <!-- badge: single line, no truncate -->
   <div class="bdb" id="bc">กำลังโหลด...</div>
-</div>
-
-<div class="val-banner" id="valBanner" style="display:none;">
-  <div class="val-banner-head" onclick="toggleValBanner()">
-    <span class="val-banner-icon">⚠️</span>
-    <span class="val-banner-title" id="valBannerTitle">พบข้อมูลผิดปกติ</span>
-    <span class="val-banner-toggle" id="valBannerToggle">▾</span>
-    <button class="val-banner-close" onclick="closeValBanner(event)">✕</button>
-  </div>
-  <div class="val-banner-body" id="valBannerBody"></div>
 </div>
 
 <div class="ptabbar">
@@ -580,7 +554,6 @@ async function init(){
     }
 
     bdf(); bt();
-    validateData();
   }catch(ex){
     document.getElementById('tw').innerHTML=
       `<div class="cm"><div style="font-size:28px">⚠️</div><div style="font-size:13px;color:var(--blk)">${ex.message}</div></div>`;
@@ -1043,105 +1016,14 @@ async function loadSuccessionData(){
 // VALIDATION — ตรวจสอบข้อมูล employees.xlsx หลังโหลดเสร็จ
 // ไม่บล็อกการแสดงผล แค่แจ้งเตือนถ้าเจอปัญหา
 // ══════════════════════════════════════════════════════════════════════
-function validateData(){
-  const issues=[];
-
-  // 1) emp_id ซ้ำ
-  const idCount={};
-  emps.forEach(e=>{ idCount[e.id]=(idCount[e.id]||0)+1; });
-  Object.entries(idCount).filter(([id,c])=>c>1).forEach(([id,c])=>{
-    issues.push(`รหัสพนักงาน <b>${id}</b> ซ้ำกัน ${c} แถว`);
-  });
-
-  // 2) reports_to ชี้ไปคนที่ไม่มีอยู่จริง
-  emps.forEach(e=>{
-    if(e.rep && !em[e.rep]){
-      issues.push(`${e.nth} (${e.id}) รายงานต่อรหัส <b>${e.rep}</b> ซึ่งไม่มีอยู่ในระบบ`);
-    }
-  });
-
-  // 3) มี root (reports_to ว่าง) มากกว่า 1 คน
-  const roots=emps.filter(e=>!e.rep);
-  if(roots.length>1){
-    issues.push(`พบ root มากกว่า 1 คน (reports_to ว่าง): ${roots.map(r=>`${r.nth} (${r.id})`).join(', ')}`);
-  }else if(roots.length===0){
-    issues.push(`ไม่พบ root employee เลย (ต้องมีอย่างน้อย 1 คนที่ reports_to ว่าง)`);
-  }
-
-  // 4) วนลูปสายบังคับบัญชา (A รายงาน B, B รายงาน A หรือวนไกลกว่านั้น)
-  emps.forEach(e=>{
-    const seen=new Set();
-    let cur=e;
-    while(cur && cur.rep){
-      if(seen.has(cur.id)){
-        issues.push(`สายบังคับบัญชาวนลูป: เริ่มจาก ${e.nth} (${e.id})`);
-        break;
-      }
-      seen.add(cur.id);
-      cur=em[cur.rep];
-    }
-  });
-
-    // (dept_id ที่ไม่มีใน sheet Departments ถูกเติมอัตโนมัติแล้วโดย healOrphanDeptIds()
-  //  จึงไม่นับเป็น "ปัญหา" อีกต่อไป — แจ้งแยกเป็นข้อมูลเสริมด้านล่างแทน)
-
-// 6) ชื่อ/ตำแหน่งว่างเปล่า
-  emps.forEach(e=>{
-    if(!e.nth) issues.push(`รหัสพนักงาน <b>${e.id}</b> ไม่มีชื่อ (name_th ว่าง)`);
-    if(!e.pos) issues.push(`${e.nth||e.id} ไม่มีตำแหน่ง (position ว่าง)`);
-  });
-
-  showValBanner(issues);
-}
-
-function showValBanner(issues){
-  const banner=document.getElementById('valBanner');
-  const title=document.getElementById('valBannerTitle');
-  const body=document.getElementById('valBannerBody');
-
-  const healedCount=healedDeptIds.length;
-  const healedNote=healedCount>0
-    ? `<div class="val-banner-item" style="color:#0D5C8A;">ℹ️ เติม dept_id ที่ขาดหายอัตโนมัติ ${healedCount} รายการ (ไม่กระทบการใช้งาน — เป็นแค่ข้อมูลเสริมสำหรับผู้ดูแลระบบ)</div>`
-    : '';
-
-  if(!issues.length && !healedCount){ banner.style.display='none'; return; }
-
-  if(issues.length){
-    title.textContent=`พบข้อมูลผิดปกติ ${issues.length} รายการ — คลิกเพื่อดูรายละเอียด`;
-    banner.className='val-banner';
-  }else{
-    title.textContent=`มีข้อมูลเสริมจากระบบ — คลิกเพื่อดูรายละเอียด`;
-    banner.className='val-banner val-banner-info';
-  }
-
-  body.innerHTML=issues.slice(0,30).map(txt=>`<div class="val-banner-item">• ${txt}</div>`).join('')
-    + (issues.length>30?`<div class="val-banner-item">... และอีก ${issues.length-30} รายการ</div>`:'')
-    + healedNote;
-  banner.style.display='block';
-}
-
-function toggleValBanner(){
-  const body=document.getElementById('valBannerBody');
-  const toggle=document.getElementById('valBannerToggle');
-  const willOpen=!body.classList.contains('open');
-  body.classList.toggle('open',willOpen);
-  toggle.classList.toggle('open',willOpen);
-}
-
-function closeValBanner(ev){
-  ev.stopPropagation();
-  document.getElementById('valBanner').style.display='none';
-}
-
 // ══════════════════════════════════════════════════════════════════════
-// AUTO-HEAL — เติม dept_id ที่ขาดหายใน sheet Departments อัตโนมัติ
-// (ไม่แก้ไฟล์ Excel จริง แค่เติมในหน่วยความจำตอนแสดงผล)
+// AUTO-HEAL — เติม dept_id ที่ขาดหายใน sheet Departments อัตโนมัติ (เงียบๆ)
+// (ไม่แก้ไฟล์ Excel จริง แค่เติมในหน่วยความจำตอนแสดงผล เพื่อให้ popup/สายงาน
+//  ของพนักงานที่มี dept_id ระดับลึกที่ไม่มี row ของตัวเองใน Departments
+//  ยังคำนวณสายงานถูกต้อง — ตรวจสอบข้อมูลก่อน upload จริงที่ data_validator.html แทน)
 // หา "สายงานแม่" ที่ใกล้ที่สุดที่มีอยู่จริง แล้วสร้าง entry เทียมให้
 // ══════════════════════════════════════════════════════════════════════
-let healedDeptIds=[]; // เก็บไว้บอกใน validation banner ว่าเติมอะไรไปบ้าง
-
 function healOrphanDeptIds(){
-  healedDeptIds=[];
   const orphanIds=new Set();
   emps.forEach(e=>{ if(e.did && !dm[e.did]) orphanIds.add(e.did); });
 
@@ -1154,7 +1036,6 @@ function healOrphanDeptIds(){
     }
     if(ancestor){
       dm[did]={id:did, name:did, pid:ancestor, lo:(dm[ancestor].lo||0)+1};
-      healedDeptIds.push({did, ancestor});
     }
   });
 }
