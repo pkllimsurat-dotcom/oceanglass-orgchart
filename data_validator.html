@@ -167,10 +167,22 @@ function validateEmployees(wb){
     }
   });
 
-  // 5) dept_id ไม่มีจริง
-  emps.forEach(e=>{
-    if(e.did && !dm[e.did]){
-      issues.push(`${e.nth} (${e.id}) มี dept_id <b>${e.did}</b> ซึ่งไม่มีใน sheet Departments`);
+  // 5) dept_id ไม่มีจริง — แยกเป็น 2 ระดับ: ถ้ายังหา "สายงานแม่" เจอ = แค่แจ้งเตือนเบาๆ (ไม่กระทบการใช้งานจริง)
+  //    ถ้าหาสายงานแม่ไม่เจอเลย = ปัญหาจริงที่ต้องแก้
+  const infoNotes=[];
+  const orphanIds=new Set();
+  emps.forEach(e=>{ if(e.did && !dm[e.did]) orphanIds.add(e.did); });
+  orphanIds.forEach(did=>{
+    const parts=did.split('-');
+    let ancestor=null;
+    for(let cut=1; cut<parts.length; cut++){
+      const candidate=parts.slice(0,parts.length-cut).join('-');
+      if(dm[candidate]){ ancestor=candidate; break; }
+    }
+    if(ancestor){
+      infoNotes.push(`dept_id <b>${did}</b> ไม่มีชื่อทางการ แต่ยังหาสายงานแม่ (${ancestor}) เจอ — ระบบเว็บจะเติมให้อัตโนมัติ ไม่กระทบการใช้งาน`);
+    }else{
+      issues.push(`dept_id <b>${did}</b> ไม่มีอยู่จริง และหาสายงานแม่ไม่เจอเลย — ต้องแก้ไขก่อนใช้งาน`);
     }
   });
 
@@ -180,7 +192,7 @@ function validateEmployees(wb){
     if(!e.pos) issues.push(`${e.nth||e.id} ไม่มีตำแหน่ง (position ว่าง)`);
   });
 
-  showResult(issues,`employees.xlsx (${emps.length} คน)`);
+  showResult(issues,`employees.xlsx (${emps.length} คน)`,infoNotes);
 }
 
 function validateSuccession(wb){
@@ -214,20 +226,29 @@ function validateSuccession(wb){
   showResult(issues,`succession.xlsx (${dataRows.length} ตำแหน่ง)`);
 }
 
-function showResult(issues,fileLabel){
+function showResult(issues,fileLabel,infoNotes){
+  infoNotes=infoNotes||[];
   const result=document.getElementById('result');
   const summary=document.getElementById('resultSummary');
   const groups=document.getElementById('issueGroups');
   result.style.display='block';
 
+  const infoHtml=infoNotes.length
+    ? `<div class="issue-group"><div class="issue-group-title" style="color:#0D5C8A;">ℹ️ ข้อมูลเสริม (ไม่กระทบการใช้งาน)</div>`
+      + infoNotes.map(txt=>`<div class="issue-item" style="background:#E7F3FA;color:#0D5C8A;">• ${txt}</div>`).join('')
+      + `</div>`
+    : '';
+
   if(!issues.length){
     summary.className='result-summary ok';
-    summary.textContent=`✅ ไม่พบปัญหา — ${fileLabel} พร้อม upload ได้เลย`;
-    groups.innerHTML='';
+    summary.textContent=infoNotes.length
+      ? `✅ ไม่พบปัญหาที่ต้องแก้ — ${fileLabel} พร้อม upload ได้เลย (มีข้อมูลเสริมด้านล่าง)`
+      : `✅ ไม่พบปัญหา — ${fileLabel} พร้อม upload ได้เลย`;
+    groups.innerHTML=infoHtml;
   }else{
     summary.className='result-summary bad';
     summary.textContent=`⚠️ พบปัญหา ${issues.length} รายการใน ${fileLabel} — แนะนำให้แก้ก่อน upload`;
-    groups.innerHTML=issues.map(txt=>`<div class="issue-item">• ${txt}</div>`).join('');
+    groups.innerHTML=`<div class="issue-group">`+issues.map(txt=>`<div class="issue-item">• ${txt}</div>`).join('')+`</div>`+infoHtml;
   }
 }
 </script>

@@ -205,6 +205,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 
 /* ── Validation warning banner ── */
 .val-banner{background:#FFF3CD;border-bottom:2px solid #E67E22;}
+.val-banner.val-banner-info{background:#E7F3FA;border-bottom:2px solid #3498DB;}
+.val-banner.val-banner-info .val-banner-title,.val-banner.val-banner-info .val-banner-toggle,.val-banner.val-banner-info .val-banner-close{color:#0D5C8A;}
 .val-banner-head{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;}
 .val-banner-icon{font-size:14px;flex-shrink:0;}
 .val-banner-title{font-size:12px;font-weight:700;color:#7A4A00;flex:1;}
@@ -566,6 +568,7 @@ async function init(){
     });
     emps.forEach(e=>{em[e.id]=e;});
     emps.forEach(e=>{if(!e.rep)return;if(!co[e.rep])co[e.rep]=[];co[e.rep].push(e);});
+    healOrphanDeptIds(); // เติม dept_id ที่ไม่มีในชีต Departments อัตโนมัติ ไม่แก้ Excel
 
     // Badge: single line
     const total=emps.length;
@@ -1079,14 +1082,10 @@ function validateData(){
     }
   });
 
-  // 5) dept_id ที่ไม่มีใน sheet Departments
-  emps.forEach(e=>{
-    if(e.did && !dm[e.did]){
-      issues.push(`${e.nth} (${e.id}) มี dept_id <b>${e.did}</b> ซึ่งไม่มีใน sheet Departments`);
-    }
-  });
+    // (dept_id ที่ไม่มีใน sheet Departments ถูกเติมอัตโนมัติแล้วโดย healOrphanDeptIds()
+  //  จึงไม่นับเป็น "ปัญหา" อีกต่อไป — แจ้งแยกเป็นข้อมูลเสริมด้านล่างแทน)
 
-  // 6) ชื่อ/ตำแหน่งว่างเปล่า
+// 6) ชื่อ/ตำแหน่งว่างเปล่า
   emps.forEach(e=>{
     if(!e.nth) issues.push(`รหัสพนักงาน <b>${e.id}</b> ไม่มีชื่อ (name_th ว่าง)`);
     if(!e.pos) issues.push(`${e.nth||e.id} ไม่มีตำแหน่ง (position ว่าง)`);
@@ -1099,11 +1098,25 @@ function showValBanner(issues){
   const banner=document.getElementById('valBanner');
   const title=document.getElementById('valBannerTitle');
   const body=document.getElementById('valBannerBody');
-  if(!issues.length){ banner.style.display='none'; return; }
 
-  title.textContent=`พบข้อมูลผิดปกติ ${issues.length} รายการ — คลิกเพื่อดูรายละเอียด`;
+  const healedCount=healedDeptIds.length;
+  const healedNote=healedCount>0
+    ? `<div class="val-banner-item" style="color:#0D5C8A;">ℹ️ เติม dept_id ที่ขาดหายอัตโนมัติ ${healedCount} รายการ (ไม่กระทบการใช้งาน — เป็นแค่ข้อมูลเสริมสำหรับผู้ดูแลระบบ)</div>`
+    : '';
+
+  if(!issues.length && !healedCount){ banner.style.display='none'; return; }
+
+  if(issues.length){
+    title.textContent=`พบข้อมูลผิดปกติ ${issues.length} รายการ — คลิกเพื่อดูรายละเอียด`;
+    banner.className='val-banner';
+  }else{
+    title.textContent=`มีข้อมูลเสริมจากระบบ — คลิกเพื่อดูรายละเอียด`;
+    banner.className='val-banner val-banner-info';
+  }
+
   body.innerHTML=issues.slice(0,30).map(txt=>`<div class="val-banner-item">• ${txt}</div>`).join('')
-    + (issues.length>30?`<div class="val-banner-item">... และอีก ${issues.length-30} รายการ</div>`:'');
+    + (issues.length>30?`<div class="val-banner-item">... และอีก ${issues.length-30} รายการ</div>`:'')
+    + healedNote;
   banner.style.display='block';
 }
 
@@ -1118,6 +1131,32 @@ function toggleValBanner(){
 function closeValBanner(ev){
   ev.stopPropagation();
   document.getElementById('valBanner').style.display='none';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// AUTO-HEAL — เติม dept_id ที่ขาดหายใน sheet Departments อัตโนมัติ
+// (ไม่แก้ไฟล์ Excel จริง แค่เติมในหน่วยความจำตอนแสดงผล)
+// หา "สายงานแม่" ที่ใกล้ที่สุดที่มีอยู่จริง แล้วสร้าง entry เทียมให้
+// ══════════════════════════════════════════════════════════════════════
+let healedDeptIds=[]; // เก็บไว้บอกใน validation banner ว่าเติมอะไรไปบ้าง
+
+function healOrphanDeptIds(){
+  healedDeptIds=[];
+  const orphanIds=new Set();
+  emps.forEach(e=>{ if(e.did && !dm[e.did]) orphanIds.add(e.did); });
+
+  orphanIds.forEach(did=>{
+    const parts=did.split('-');
+    let ancestor=null;
+    for(let cut=1; cut<parts.length; cut++){
+      const candidate=parts.slice(0,parts.length-cut).join('-');
+      if(dm[candidate]){ ancestor=candidate; break; }
+    }
+    if(ancestor){
+      dm[did]={id:did, name:did, pid:ancestor, lo:(dm[ancestor].lo||0)+1};
+      healedDeptIds.push({did, ancestor});
+    }
+  });
 }
 
 function computeDivision(eid){
