@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Ocean Glass — ตรวจสอบไฟล์ก่อน Upload</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;}
+body{background:#FAFAFA;color:#1A1A1A;padding:24px 16px;}
+.wrap{max-width:640px;margin:0 auto;}
+.card{background:#fff;border:1px solid #E4E4E4;border-radius:10px;padding:24px;box-shadow:0 1px 6px rgba(0,0,0,.06);}
+h1{font-size:16px;color:#DA1F26;margin-bottom:4px;}
+.sub{font-size:12px;color:#76777B;margin-bottom:20px;line-height:1.6;}
+.drop{border:2px dashed #E4E4E4;border-radius:10px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .15s;background:#FAFAFA;}
+.drop:hover,.drop.dragover{border-color:#DA1F26;background:#FDECEA;}
+.drop-icon{font-size:36px;margin-bottom:10px;}
+.drop-text{font-size:13px;color:#76777B;}
+.drop-text b{color:#DA1F26;}
+input[type=file]{display:none;}
+.filename{margin-top:14px;font-size:12px;color:#1A1A1A;background:#F5F5F5;padding:8px 12px;border-radius:6px;display:none;}
+.result{margin-top:20px;display:none;}
+.result-summary{padding:14px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;}
+.result-summary.ok{background:#D4EDDA;color:#155724;}
+.result-summary.bad{background:#FFF3CD;color:#7A4A00;}
+.issue-group{margin-bottom:14px;}
+.issue-group-title{font-size:12px;font-weight:700;color:#1A1A1A;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #E4E4E4;}
+.issue-item{font-size:11.5px;color:#5C3A00;padding:5px 10px;background:#FFF8E1;border-radius:5px;margin-bottom:4px;line-height:1.5;}
+.issue-item b{color:#B01920;}
+.spinner{width:28px;height:28px;border:3px solid #E4E4E4;border-top-color:#DA1F26;border-radius:50%;animation:spin .7s linear infinite;margin:20px auto;display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.note{margin-top:20px;font-size:11px;color:#76777B;line-height:1.6;padding:12px;background:#F5F5F5;border-radius:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>🔍 ตรวจสอบไฟล์ก่อน Upload</h1>
+    <div class="sub">
+      ลากไฟล์ <b>employees.xlsx</b> หรือ <b>succession.xlsx</b> มาวางที่นี่เพื่อตรวจสอบก่อนอัปโหลดขึ้น GitHub<br>
+      ตรวจในเบราว์เซอร์ทั้งหมด ไม่มีการส่งไฟล์ไปที่ไหนเลย
+    </div>
+
+    <div class="drop" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">📁</div>
+      <div class="drop-text">ลากไฟล์มาวางตรงนี้ หรือ <b>คลิกเพื่อเลือกไฟล์</b></div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx"/>
+    <div class="filename" id="filename"></div>
+    <div class="spinner" id="spinner"></div>
+
+    <div class="result" id="result">
+      <div class="result-summary" id="resultSummary"></div>
+      <div id="issueGroups"></div>
+    </div>
+
+    <div class="note">
+      <b>ตรวจสอบอะไรบ้าง</b><br>
+      • emp_id ซ้ำกัน<br>
+      • reports_to ชี้ไปคนที่ไม่มีอยู่จริง<br>
+      • มี root มากกว่า/น้อยกว่า 1 คน<br>
+      • สายบังคับบัญชาวนลูป<br>
+      • dept_id ที่ไม่มีใน sheet Departments<br>
+      • ชื่อ/ตำแหน่งว่างเปล่า<br>
+      • (succession.xlsx) emp_id ที่ไม่มีในระบบ, คะแนนนอกช่วง 1-5
+    </div>
+  </div>
+</div>
+
+<script>
+const dropZone=document.getElementById('dropZone');
+const fileInput=document.getElementById('fileInput');
+
+['dragover','dragenter'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.add('dragover');}));
+['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.remove('dragover');}));
+dropZone.addEventListener('drop',e=>{
+  const f=e.dataTransfer.files[0];
+  if(f) handleFile(f);
+});
+fileInput.addEventListener('change',e=>{
+  const f=e.target.files[0];
+  if(f) handleFile(f);
+});
+
+function handleFile(file){
+  document.getElementById('filename').textContent='📄 '+file.name;
+  document.getElementById('filename').style.display='block';
+  document.getElementById('result').style.display='none';
+  document.getElementById('spinner').style.display='block';
+
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      document.getElementById('spinner').style.display='none';
+      if(wb.SheetNames.includes('Employees')&&wb.SheetNames.includes('Departments')){
+        validateEmployees(wb);
+      }else if(wb.SheetNames.includes('กรอกข้อมูล')){
+        validateSuccession(wb);
+      }else{
+        showResult(['ไม่รู้จักไฟล์นี้ — ต้องเป็น employees.xlsx (มี sheet Employees+Departments) หรือ succession.xlsx (มี sheet กรอกข้อมูล)'],'employees.xlsx / succession.xlsx');
+      }
+    }catch(ex){
+      document.getElementById('spinner').style.display='none';
+      showResult(['ไม่สามารถอ่านไฟล์นี้ได้: '+ex.message],'ไฟล์');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function sv(x){
+  if(x===null||x===undefined)return'';
+  if(typeof x==='number'&&isNaN(x))return'';
+  const s=String(x).trim();
+  return(s==='nan'||s==='NaT'||s==='<NA>')?'':s;
+}
+
+function validateEmployees(wb){
+  const issues=[];
+  const dws=wb.Sheets['Departments'];
+  const drows=XLSX.utils.sheet_to_json(dws,{defval:''});
+  const dm={};
+  drows.forEach(r=>{ const id=sv(r.dept_id); if(id) dm[id]=true; });
+
+  const ews=wb.Sheets['Employees'];
+  const erows=XLSX.utils.sheet_to_json(ews,{defval:'',range:1});
+  const emps=[]; const em={};
+  erows.forEach(r=>{
+    const id=sv(r.emp_id); if(!id||id==='emp_id') return;
+    const e={id,nth:sv(r.name_th),pos:sv(r.position),did:sv(r.dept_id),rep:sv(r.reports_to).replace(/\.0$/,'')};
+    emps.push(e); em[id]=e;
+  });
+
+  // 1) emp_id ซ้ำ
+  const idCount={};
+  emps.forEach(e=>{ idCount[e.id]=(idCount[e.id]||0)+1; });
+  Object.entries(idCount).filter(([id,c])=>c>1).forEach(([id,c])=>{
+    issues.push(`รหัสพนักงาน <b>${id}</b> ซ้ำกัน ${c} แถว`);
+  });
+
+  // 2) reports_to ชี้ไปคนที่ไม่มีอยู่จริง
+  emps.forEach(e=>{
+    if(e.rep && !em[e.rep]){
+      issues.push(`${e.nth} (${e.id}) รายงานต่อรหัส <b>${e.rep}</b> ซึ่งไม่มีอยู่ในระบบ`);
+    }
+  });
+
+  // 3) root count
+  const roots=emps.filter(e=>!e.rep);
+  if(roots.length>1){
+    issues.push(`พบ root มากกว่า 1 คน (reports_to ว่าง): ${roots.map(r=>`${r.nth} (${r.id})`).join(', ')}`);
+  }else if(roots.length===0){
+    issues.push(`ไม่พบ root employee เลย (ต้องมีอย่างน้อย 1 คนที่ reports_to ว่าง)`);
+  }
+
+  // 4) วนลูป
+  emps.forEach(e=>{
+    const seen=new Set();
+    let cur=e;
+    while(cur && cur.rep){
+      if(seen.has(cur.id)){
+        issues.push(`สายบังคับบัญชาวนลูป: เริ่มจาก ${e.nth} (${e.id})`);
+        break;
+      }
+      seen.add(cur.id);
+      cur=em[cur.rep];
+    }
+  });
+
+  // 5) dept_id ไม่มีจริง
+  emps.forEach(e=>{
+    if(e.did && !dm[e.did]){
+      issues.push(`${e.nth} (${e.id}) มี dept_id <b>${e.did}</b> ซึ่งไม่มีใน sheet Departments`);
+    }
+  });
+
+  // 6) ชื่อ/ตำแหน่งว่าง
+  emps.forEach(e=>{
+    if(!e.nth) issues.push(`รหัสพนักงาน <b>${e.id}</b> ไม่มีชื่อ (name_th ว่าง)`);
+    if(!e.pos) issues.push(`${e.nth||e.id} ไม่มีตำแหน่ง (position ว่าง)`);
+  });
+
+  showResult(issues,`employees.xlsx (${emps.length} คน)`);
+}
+
+function validateSuccession(wb){
+  const issues=[];
+  const ws=wb.Sheets['กรอกข้อมูล'];
+  const rows=XLSX.utils.sheet_to_json(ws,{defval:'',range:1});
+  const dataRows=rows.filter(r=>sv(r.emp_id)&&sv(r.emp_id)!=='emp_id');
+
+  const idSeen={};
+  dataRows.forEach((r,i)=>{
+    const eid=sv(r.emp_id).replace(/\.0$/,'');
+    idSeen[eid]=(idSeen[eid]||0)+1;
+
+    ['business_impact','turnover_risk','replacement_difficulty','development_time'].forEach(col=>{
+      const v=sv(r[col]);
+      if(v!==''){
+        const n=parseFloat(v);
+        if(isNaN(n)||n<1||n>5){
+          issues.push(`${sv(r.name_th)||eid} — คอลัมน์ <b>${col}</b> มีค่า "${v}" ซึ่งอยู่นอกช่วง 1-5`);
+        }
+      }
+    });
+
+    if(!sv(r.name_th)) issues.push(`รหัสพนักงาน <b>${eid}</b> ไม่มีชื่อ (name_th ว่าง)`);
+  });
+
+  Object.entries(idSeen).filter(([id,c])=>c>1).forEach(([id,c])=>{
+    issues.push(`รหัสพนักงาน <b>${id}</b> ซ้ำกัน ${c} แถวในไฟล์ succession`);
+  });
+
+  showResult(issues,`succession.xlsx (${dataRows.length} ตำแหน่ง)`);
+}
+
+function showResult(issues,fileLabel){
+  const result=document.getElementById('result');
+  const summary=document.getElementById('resultSummary');
+  const groups=document.getElementById('issueGroups');
+  result.style.display='block';
+
+  if(!issues.length){
+    summary.className='result-summary ok';
+    summary.textContent=`✅ ไม่พบปัญหา — ${fileLabel} พร้อม upload ได้เลย`;
+    groups.innerHTML='';
+  }else{
+    summary.className='result-summary bad';
+    summary.textContent=`⚠️ พบปัญหา ${issues.length} รายการใน ${fileLabel} — แนะนำให้แก้ก่อน upload`;
+    groups.innerHTML=issues.map(txt=>`<div class="issue-item">• ${txt}</div>`).join('');
+  }
+}
+</script>
+</body>
+</html>
