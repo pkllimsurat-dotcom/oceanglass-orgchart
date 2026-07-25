@@ -141,7 +141,21 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 @media(max-width:420px){.sp-legend-row{grid-template-columns:1fr;}}
 
 /* Collapsible table section */
+.sp-master-filter{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:var(--lg);border-radius:6px;}
+.sp-master-filter-label{font-size:12px;font-weight:600;color:var(--blk);white-space:nowrap;}
+
+/* Cluster dot: หลายคนคะแนนใกล้กันมาก รวมเป็นจุดเดียว */
+.matrix-cluster{position:absolute;width:22px;height:22px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;transition:transform .15s;z-index:2;}
+.matrix-cluster:hover{transform:scale(1.25);z-index:6;}
+
+/* Cluster popover: รายชื่อในกลุ่ม */
+.cluster-pop{position:fixed;background:var(--wh);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:8px;z-index:300;max-width:220px;max-height:260px;overflow-y:auto;}
+.cluster-pop-item{padding:7px 10px;font-size:11px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.cluster-pop-item:hover{background:var(--lg);}
+.cluster-pop-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
 .sp-table-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--lg);border-radius:6px;cursor:pointer;transition:background .15s;}
+
 .sp-export-btn{background:var(--blk);color:#fff;border:none;border-radius:6px;padding:10px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .sp-export-btn:hover{background:var(--red);}
 .sp-table-toggle:hover{background:var(--mid);}
@@ -261,6 +275,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
     </div>
     <div id="succContent" style="display:none;">
       <div class="sp-intro" id="succIntro"></div>
+      <div class="sp-master-filter">
+        <span class="sp-master-filter-label">แสดงเฉพาะสายงาน:</span>
+        <select id="spGlobalDivFilter" class="sp-filter-select" onchange="refreshSuccessionView()">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
       <div class="matrix-box">
         <div class="matrix-row">
           <div class="matrix-axis-y-wrap"><div class="matrix-axis-y">ผลกระทบต่อธุรกิจ (Business Impact)</div></div>
@@ -280,9 +300,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
       <div class="sp-table-section" id="spTableSection">
         <div class="sp-filter-bar" id="spFilterBar">
           <input id="spSearchInput" class="sp-filter-input" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="applyTableFilters()"/>
-          <select id="spDivFilter" class="sp-filter-select" onchange="applyTableFilters()">
-            <option value="">ทุกสายงาน</option>
-          </select>
           <select id="spQuadFilter" class="sp-filter-select" onchange="applyTableFilters()">
             <option value="">ทุก Quadrant</option>
           </select>
@@ -390,6 +407,7 @@ let viewMode='tree'; // 'tree' | 'grade'
 let emps=[],dm={},em={},co={};
 let succData=[]; // ข้อมูล succession planning
 let succUnlocked=false;
+let activeSuccDiv=''; // สายงานที่เลือกในหน้า Succession Planning (''=ทั้งหมด)
 let currentPage='org';
 let adiv='ALL', ulas=null, cemp=null;
 
@@ -955,10 +973,8 @@ async function loadSuccessionData(){
       ?` <span style="color:#E67E22;font-weight:600;">⚠️ มี ${missingCount} ตำแหน่งใหม่ที่ยังไม่ได้กรอกคะแนน (ดูแถวสีเหลืองในตาราง)</span>`
       :'';
     intro.innerHTML=`พบตำแหน่ง Key Position ทั้งหมด <b>${succData.length}</b> ตำแหน่ง — คลิกที่จุดในกราฟหรือแถวในตารางเพื่อดูรายละเอียด${missingMsg}`;
-    renderMatrix();
-    renderLegend();
     populateFilters();
-    renderSuccTable();
+    refreshSuccessionView();
   }).catch(ex=>{
     intro.innerHTML=`<span style="color:var(--red)">⚠️ ${ex.message}</span>`;
   });
@@ -993,11 +1009,17 @@ const QUAD_ACTION={
   'Low Impact + Low Risk':'ติดตามตามปกติ',
 };
 
-function renderMatrix(){
+// จำนวนจุดสูงสุดที่ยังโชว์ชื่อค้างบนกราฟได้ — เกินกว่านี้จะซ่อน label ถาวร ใช้ hover/คลิกแทน
+const LABEL_SHOW_THRESHOLD=15;
+// ระยะห่าง (%) ที่ถือว่า "ใกล้กันเกินไป" ต้องรวมเป็น cluster เดียว
+const CLUSTER_DIST=4.5;
+
+function renderMatrix(data){
   const grid=document.getElementById('matrixGrid');
   grid.innerHTML='';
 
-  const norm=(v)=>((v-1)/4)*100;
+  // เว้นขอบใน (inset) กันจุด/label ล้นออกนอกกรอบ — คะแนน 1-5 แมปเป็น 8%-92% แทน 0-100%
+  const norm=(v)=>8+((v-1)/4)*84;
   const midX=norm(3.5), midY=norm(3.5);
 
   const vLine=document.createElement('div');
@@ -1007,50 +1029,131 @@ function renderMatrix(){
   hLine.style.cssText=`position:absolute;top:${100-midY}%;left:0;right:0;height:1px;background:#ddd;`;
   grid.appendChild(hLine);
 
-  const plottable=succData.filter(d=>d.businessImpact!==null&&d.riskScore!==null);
+  const plottable=data.filter(d=>d.businessImpact!==null&&d.riskScore!==null);
 
   if(!plottable.length){
     grid.innerHTML='<div class="sp-empty" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">ยังไม่มีข้อมูลคะแนนที่กรอกครบ</div>';
     return;
   }
 
-  // จัดกลุ่มจุดที่ตำแหน่งใกล้กันมาก เพื่อ offset label ไม่ให้ทับ
-  const placed=[];
-  plottable.forEach(d=>{
-    const x=norm(d.riskScore), y=norm(d.businessImpact);
-    const nearbyCount=placed.filter(p=>Math.abs(p.x-x)<6&&Math.abs(p.y-y)<6).length;
-    placed.push({x,y});
+  const showLabels=plottable.length<=LABEL_SHOW_THRESHOLD;
 
+  // ── จัดกลุ่มจุดที่คะแนนใกล้กันมาก (cluster) ──────────────────────────────
+  const points=plottable.map(d=>({d,x:norm(d.riskScore),y:norm(d.businessImpact)}));
+  const clusters=[]; // [{x,y,items:[d,...]}]
+  const used=new Array(points.length).fill(false);
+  points.forEach((p,i)=>{
+    if(used[i])return;
+    const group=[p.d]; used[i]=true;
+    let sx=p.x, sy=p.y, cnt=1;
+    points.forEach((q,j)=>{
+      if(i===j||used[j])return;
+      if(Math.abs(p.x-q.x)<CLUSTER_DIST&&Math.abs(p.y-q.y)<CLUSTER_DIST){
+        group.push(q.d); used[j]=true; sx+=q.x; sy+=q.y; cnt++;
+      }
+    });
+    clusters.push({x:sx/cnt,y:sy/cnt,items:group});
+  });
+
+  // ── วาดแต่ละ cluster ──────────────────────────────────────────────────
+  const placedLabels=[]; // สำหรับ stagger label แนวตั้งกันทับ (เฉพาะตอน showLabels)
+  clusters.forEach(cl=>{
+    const {x,y,items}=cl;
     const dotWrap=document.createElement('div');
     dotWrap.style.cssText=`position:absolute;left:${x}%;bottom:${y}%;transform:translate(-50%,50%);`;
 
-    const dot=document.createElement('div');
-    dot.className='matrix-dot';
-    dot.style.position='relative';
-    dot.style.left='0';
-    dot.style.bottom='0';
-    dot.style.transform='none';
-    dot.style.background=QUAD_COLOR[d.quadrant]||'#999';
-    dot.title=`${d.name} (${d.pos})\nImpact: ${d.businessImpact} | Risk: ${d.riskScore}`;
-    dot.onclick=()=>showSuccDetail(d);
+    if(items.length>1){
+      // ── Cluster dot: หลายคนคะแนนใกล้กัน ──
+      const dominant=mostCommonQuadrant(items);
+      const dot=document.createElement('div');
+      dot.className='matrix-cluster';
+      dot.style.background=QUAD_COLOR[dominant]||'#999';
+      dot.textContent=items.length;
+      dot.title=items.map(it=>it.name).join(', ');
+      dot.onclick=(ev)=>{ev.stopPropagation();showClusterPopover(ev,items);};
+      dotWrap.appendChild(dot);
+    }else{
+      const d=items[0];
+      const dot=document.createElement('div');
+      dot.className='matrix-dot';
+      dot.style.position='relative'; dot.style.left='0'; dot.style.bottom='0'; dot.style.transform='none';
+      dot.style.background=QUAD_COLOR[d.quadrant]||'#999';
+      dot.title=`${d.name} (${d.pos})\nImpact: ${d.businessImpact} | Vacancy: ${d.riskScore}`;
+      dot.onclick=()=>showSuccDetail(d);
+      dotWrap.appendChild(dot);
 
-    const label=document.createElement('div');
-    label.className='matrix-dot-label';
-    label.textContent=d.name.split(' ')[0];
-    const labelOffset=nearbyCount*11;
-    label.style.cssText+=`top:${-14-labelOffset}px;left:50%;transform:translateX(-50%);`;
-
-    dotWrap.appendChild(dot);
-    dotWrap.appendChild(label);
+      if(showLabels){
+        const nearbyCount=placedLabels.filter(p=>Math.abs(p.x-x)<6&&Math.abs(p.y-y)<6).length;
+        placedLabels.push({x,y});
+        const label=document.createElement('div');
+        label.className='matrix-dot-label';
+        label.textContent=d.name.split(' ')[0];
+        const labelOffset=nearbyCount*11;
+        label.style.cssText+=`top:${-14-labelOffset}px;left:50%;transform:translateX(-50%);`;
+        dotWrap.appendChild(label);
+      }
+    }
     grid.appendChild(dotWrap);
   });
+
+  // คำแนะนำเมื่อซ่อน label เพราะข้อมูลเยอะ
+  if(!showLabels){
+    const hint=document.createElement('div');
+    hint.style.cssText='position:absolute;top:4px;right:8px;font-size:9.5px;color:var(--gy);background:rgba(255,255,255,.85);padding:2px 6px;border-radius:4px;';
+    hint.textContent='ชื่อซ่อนอยู่ — เลื่อนเมาส์ชี้จุด หรือเลือกสายงานเพื่อดูชื่อ';
+    grid.appendChild(hint);
+  }
 }
 
-function renderLegend(){
+function mostCommonQuadrant(items){
+  const cnt={};
+  items.forEach(it=>{ if(it.quadrant) cnt[it.quadrant]=(cnt[it.quadrant]||0)+1; });
+  let best=null,bestN=0;
+  Object.entries(cnt).forEach(([q,n])=>{ if(n>bestN){best=q;bestN=n;} });
+  return best;
+}
+
+// ── Popover แสดงรายชื่อใน cluster ─────────────────────────────────────────
+function showClusterPopover(ev,items){
+  closeClusterPopover();
+  const pop=document.createElement('div');
+  pop.className='cluster-pop';
+  pop.id='clusterPop';
+  items.forEach(it=>{
+    const row=document.createElement('div');
+    row.className='cluster-pop-item';
+    const dotIndicator=document.createElement('div');
+    dotIndicator.className='cluster-pop-dot';
+    dotIndicator.style.background=QUAD_COLOR[it.quadrant]||'#999';
+    const label=document.createElement('span');
+    label.textContent=it.name;
+    row.appendChild(dotIndicator); row.appendChild(label);
+    row.onclick=(e)=>{e.stopPropagation();closeClusterPopover();showSuccDetail(it);};
+    pop.appendChild(row);
+  });
+  document.body.appendChild(pop);
+  const r=ev.target.getBoundingClientRect();
+  let left=r.left, top=r.bottom+6;
+  // กันล้นขอบขวา/ล่างจอ
+  requestAnimationFrame(()=>{
+    const pr=pop.getBoundingClientRect();
+    if(pr.right>window.innerWidth-8) left=window.innerWidth-pr.width-8;
+    if(pr.bottom>window.innerHeight-8) top=r.top-pr.height-6;
+    pop.style.left=left+'px'; pop.style.top=top+'px';
+  });
+  pop.style.left=left+'px'; pop.style.top=top+'px';
+  setTimeout(()=>document.addEventListener('click',closeClusterPopover,{once:true}),0);
+}
+function closeClusterPopover(){
+  const p=document.getElementById('clusterPop');
+  if(p) p.remove();
+}
+
+function renderLegend(data){
   const lg=document.getElementById('spLegend');
   lg.innerHTML='';
   Object.keys(QUAD_COLOR).forEach(q=>{
-    const count=succData.filter(d=>d.quadrant===q).length;
+    const count=data.filter(d=>d.quadrant===q).length;
     const item=document.createElement('div');
     item.className='sp-legend-item';
     item.innerHTML=`<div class="sp-legend-dot" style="background:${QUAD_COLOR[q]}"></div>
@@ -1120,17 +1223,19 @@ function exportSuccession(){
 }
 
 function populateFilters(){
-  const divSel=document.getElementById('spDivFilter');
+  const gdivSel=document.getElementById('spGlobalDivFilter');
   const quadSel=document.getElementById('spQuadFilter');
   const readySel=document.getElementById('spReadyFilter');
 
-  // สายงาน — เติมแบบ dynamic จากข้อมูลจริง รองรับสายงานใหม่/เก่าถูกลบในอนาคตอัตโนมัติ
-  divSel.innerHTML='<option value="">ทุกสายงาน</option>';
+  // สายงาน (master filter เหนือกราฟ) — เติมแบบ dynamic รองรับสายงานใหม่/เก่าถูกลบในอนาคต
+  const prevVal=gdivSel.value;
+  gdivSel.innerHTML='<option value="">ทั้งหมด</option>';
   const divs=[...new Set(succData.map(d=>d.division).filter(v=>v))].sort();
   divs.forEach(dv=>{
     const opt=document.createElement('option'); opt.value=dv; opt.textContent=dv;
-    divSel.appendChild(opt);
+    gdivSel.appendChild(opt);
   });
+  if(divs.includes(prevVal)) gdivSel.value=prevVal; // คงค่าที่เลือกไว้ถ้ายังมีอยู่
 
   quadSel.innerHTML='<option value="">ทุก Quadrant</option>';
   Object.keys(QUAD_COLOR).forEach(q=>{
@@ -1144,9 +1249,17 @@ function populateFilters(){
   });
 }
 
+// ── เรียกทุกครั้งที่เปลี่ยนสายงาน (master filter) — อัปเดตกราฟ+legend+ตารางพร้อมกัน ──
+function refreshSuccessionView(){
+  activeSuccDiv=document.getElementById('spGlobalDivFilter').value;
+  const scoped=activeSuccDiv?succData.filter(d=>d.division===activeSuccDiv):succData;
+  renderMatrix(scoped);
+  renderLegend(scoped);
+  renderSuccTable();
+}
+
 function clearTableFilters(){
   document.getElementById('spSearchInput').value='';
-  document.getElementById('spDivFilter').value='';
   document.getElementById('spQuadFilter').value='';
   document.getElementById('spReadyFilter').value='';
   applyTableFilters();
@@ -1163,13 +1276,12 @@ function renderSuccTable(){
   body.innerHTML='';
 
   const q=(document.getElementById('spSearchInput')?.value||'').trim().toLowerCase();
-  const divF=document.getElementById('spDivFilter')?.value||'';
   const quadF=document.getElementById('spQuadFilter')?.value||'';
   const readyF=document.getElementById('spReadyFilter')?.value||'';
 
   let filtered=succData.filter(d=>{
+    if(activeSuccDiv && d.division!==activeSuccDiv) return false;
     if(q && !(d.name.toLowerCase().includes(q)||d.pos.toLowerCase().includes(q))) return false;
-    if(divF && d.division!==divF) return false;
     if(quadF && d.quadrant!==quadF) return false;
     if(readyF){
       const dr=d.succReady||'—';
