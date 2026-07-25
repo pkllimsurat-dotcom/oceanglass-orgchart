@@ -141,8 +141,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 @media(max-width:420px){.sp-legend-row{grid-template-columns:1fr;}}
 
 /* Collapsible table section */
-.sp-master-filter{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:var(--lg);border-radius:6px;}
-.sp-master-filter-label{font-size:12px;font-weight:600;color:var(--blk);white-space:nowrap;}
+.sp-master-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;padding:10px 14px;background:var(--lg);border-radius:6px;}
+.sp-master-filter .sp-filter-input{flex:1;min-width:160px;}
 
 /* Cluster dot: หลายคนคะแนนใกล้กันมาก รวมเป็นจุดเดียว */
 .matrix-cluster{position:absolute;width:22px;height:22px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;transition:transform .15s;z-index:2;}
@@ -276,10 +276,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
     <div id="succContent" style="display:none;">
       <div class="sp-intro" id="succIntro"></div>
       <div class="sp-master-filter">
-        <span class="sp-master-filter-label">แสดงเฉพาะสายงาน:</span>
+        <input id="spSearchInput" class="sp-filter-input" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="refreshSuccessionView()"/>
         <select id="spGlobalDivFilter" class="sp-filter-select" onchange="refreshSuccessionView()">
-          <option value="">ทั้งหมด</option>
+          <option value="">ทุกสายงาน</option>
         </select>
+        <select id="spQuadFilter" class="sp-filter-select" onchange="refreshSuccessionView()">
+          <option value="">ทุก Quadrant</option>
+        </select>
+        <select id="spReadyFilter" class="sp-filter-select" onchange="refreshSuccessionView()">
+          <option value="">ทุกสถานะ Successor</option>
+        </select>
+        <button class="sp-filter-clear" onclick="clearTableFilters()">ล้าง filter</button>
       </div>
       <div class="matrix-box">
         <div class="matrix-row">
@@ -292,22 +299,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
         <div class="sp-table-toggle" style="flex:1;" onclick="toggleTable()">
-          <span class="sp-table-toggle-label">📋 ดูตารางรายชื่อทั้งหมด</span>
+          <span class="sp-table-toggle-label">📋 แสดงรายชื่อ (ตามตัวกรองด้านบน)</span>
           <span class="sp-table-toggle-icon" id="spTableToggleIcon">▾</span>
         </div>
         <button class="sp-export-btn" id="spExportBtn" onclick="exportSuccession()" style="display:none;">⬇ Export ข้อมูล (Admin)</button>
       </div>
       <div class="sp-table-section" id="spTableSection">
-        <div class="sp-filter-bar" id="spFilterBar">
-          <input id="spSearchInput" class="sp-filter-input" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="applyTableFilters()"/>
-          <select id="spQuadFilter" class="sp-filter-select" onchange="applyTableFilters()">
-            <option value="">ทุก Quadrant</option>
-          </select>
-          <select id="spReadyFilter" class="sp-filter-select" onchange="applyTableFilters()">
-            <option value="">ทุกสถานะ Successor</option>
-          </select>
-          <button class="sp-filter-clear" onclick="clearTableFilters()">ล้าง filter</button>
-        </div>
         <div class="sp-table-wrap">
           <table class="sp-table" id="succTable">
             <thead><tr id="succTableHead"></tr></thead>
@@ -1229,7 +1226,7 @@ function populateFilters(){
 
   // สายงาน (master filter เหนือกราฟ) — เติมแบบ dynamic รองรับสายงานใหม่/เก่าถูกลบในอนาคต
   const prevVal=gdivSel.value;
-  gdivSel.innerHTML='<option value="">ทั้งหมด</option>';
+  gdivSel.innerHTML='<option value="">ทุกสายงาน</option>';
   const divs=[...new Set(succData.map(d=>d.division).filter(v=>v))].sort();
   divs.forEach(dv=>{
     const opt=document.createElement('option'); opt.value=dv; opt.textContent=dv;
@@ -1249,20 +1246,40 @@ function populateFilters(){
   });
 }
 
-// ── เรียกทุกครั้งที่เปลี่ยนสายงาน (master filter) — อัปเดตกราฟ+legend+ตารางพร้อมกัน ──
+// ── ตัวกรองรวม: ค้นหา + สายงาน + Quadrant + สถานะ Successor ──────────────
+// ใช้ร่วมกันทั้งกราฟ, legend, และตาราง เพื่อให้ผลลัพธ์ตรงกันเสมอ
+function getFilteredSuccData(){
+  const q=(document.getElementById('spSearchInput')?.value||'').trim().toLowerCase();
+  activeSuccDiv=document.getElementById('spGlobalDivFilter')?.value||'';
+  const quadF=document.getElementById('spQuadFilter')?.value||'';
+  const readyF=document.getElementById('spReadyFilter')?.value||'';
+
+  return succData.filter(d=>{
+    if(activeSuccDiv && d.division!==activeSuccDiv) return false;
+    if(q && !(d.name.toLowerCase().includes(q)||d.pos.toLowerCase().includes(q))) return false;
+    if(quadF && d.quadrant!==quadF) return false;
+    if(readyF){
+      const dr=d.succReady||'—';
+      if(dr!==readyF) return false;
+    }
+    return true;
+  });
+}
+
+// ── เรียกทุกครั้งที่เปลี่ยนตัวกรองใดๆ — อัปเดตกราฟ+legend+ตารางพร้อมกันทันที ──
 function refreshSuccessionView(){
-  activeSuccDiv=document.getElementById('spGlobalDivFilter').value;
-  const scoped=activeSuccDiv?succData.filter(d=>d.division===activeSuccDiv):succData;
-  renderMatrix(scoped);
-  renderLegend(scoped);
+  const filtered=getFilteredSuccData();
+  renderMatrix(filtered);
+  renderLegend(filtered);
   renderSuccTable();
 }
 
 function clearTableFilters(){
   document.getElementById('spSearchInput').value='';
+  document.getElementById('spGlobalDivFilter').value='';
   document.getElementById('spQuadFilter').value='';
   document.getElementById('spReadyFilter').value='';
-  applyTableFilters();
+  refreshSuccessionView();
 }
 
 function applyTableFilters(){
@@ -1275,20 +1292,7 @@ function renderSuccTable(){
   head.innerHTML=`<th>ชื่อ</th><th>สายงาน</th><th>ตำแหน่ง</th><th>อายุ</th><th>Business Impact</th><th>Risk Score</th><th>Quadrant</th><th>Successor</th><th>Readiness</th>`;
   body.innerHTML='';
 
-  const q=(document.getElementById('spSearchInput')?.value||'').trim().toLowerCase();
-  const quadF=document.getElementById('spQuadFilter')?.value||'';
-  const readyF=document.getElementById('spReadyFilter')?.value||'';
-
-  let filtered=succData.filter(d=>{
-    if(activeSuccDiv && d.division!==activeSuccDiv) return false;
-    if(q && !(d.name.toLowerCase().includes(q)||d.pos.toLowerCase().includes(q))) return false;
-    if(quadF && d.quadrant!==quadF) return false;
-    if(readyF){
-      const dr=d.succReady||'—';
-      if(dr!==readyF) return false;
-    }
-    return true;
-  });
+  const filtered=getFilteredSuccData();
 
   const sorted=filtered.sort((a,b)=>{
     // แถวที่ยังไม่มีคะแนนไปอยู่บนสุด เพื่อเตือนให้กรอก
