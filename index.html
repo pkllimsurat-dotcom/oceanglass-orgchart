@@ -544,6 +544,22 @@ async function init(){
   }
 }
 
+// ── SHA-256 hash (salt ด้วย emp_id) ใช้ตรวจรหัสผ่านแบบไม่เก็บ plaintext ────
+// ต้องคำนวณตรงกับที่ Python สร้างไว้ใน Excel: sha256(`${empId}:${password}`)
+async function sha256Hex(str){
+  const enc=new TextEncoder().encode(str);
+  const buf=await crypto.subtle.digest('SHA-256',enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+// หา emp_id ที่ hash(emp_id:pw) ตรงกับค่าที่เก็บใน pwMap
+async function findMatchedEmpId(pw){
+  for(const eid of Object.keys(pwMap)){
+    const h=await sha256Hex(`${eid}:${pw}`);
+    if(h===pwMap[eid]) return eid;
+  }
+  return null;
+}
+
 function sv(x){
   if(x===null||x===undefined)return'';
   if(typeof x==='number'&&isNaN(x))return'';
@@ -819,11 +835,11 @@ function cio(ev){if(ev.target===document.getElementById('ov'))cpop();}
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')cpop();});
 function stab(n){[1,2].forEach(i=>{document.getElementById('t'+i).classList.toggle('on',i===n);document.getElementById('tc'+i).style.display=i===n?'':'none';});}
 function rlk(){document.getElementById('lks').style.display='';document.getElementById('sc').style.display='none';document.getElementById('lki2').value='';document.getElementById('lke').textContent='';}
-function tul(){
+async function tul(){
   const pw=document.getElementById('lki2').value.trim();
   const err=document.getElementById('lke');
   if(!pw){err.textContent='กรุณากรอกรหัสผ่าน';return;}
-  const matched=Object.keys(pwMap).find(k=>pwMap[k]===pw);
+  const matched=await findMatchedEmpId(pw);
   if(!matched){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
   // รายชื่อ emp_id ที่เห็นได้ทุกสายงาน (ALL ACCESS)
   // เพิ่ม/ลบได้ที่นี่
@@ -903,11 +919,11 @@ function setPage(p){
   if(p==='succ'&&succUnlocked&&succData.length===0){ loadSuccessionData(); }
 }
 
-function trySuccUnlock(){
+async function trySuccUnlock(){
   const pw=document.getElementById('succPwInput').value.trim();
   const err=document.getElementById('succLkErr');
   if(!pw){err.textContent='กรุณากรอกรหัสผ่าน';return;}
-  const matched=Object.keys(pwMap).find(k=>pwMap[k]===pw);
+  const matched=await findMatchedEmpId(pw);
   if(!matched){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
   succUnlocked=true;
   document.getElementById('succLockScreen').style.display='none';
