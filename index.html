@@ -172,6 +172,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-filter-select{border:1px solid var(--mid);border-radius:6px;padding:7px 10px;font-size:12px;background:var(--wh);color:var(--blk);cursor:pointer;}
 .sp-filter-clear{border:1px solid var(--mid);border-radius:6px;padding:7px 12px;font-size:12px;background:var(--lg);color:var(--gy);cursor:pointer;white-space:nowrap;}
 .sp-filter-clear:hover{background:var(--red);color:#fff;border-color:var(--red);}
+.sp-filter-clear.on{background:var(--red);color:#fff;border-color:var(--red);}
 .sp-row-missing{background:#FFF8E1!important;}
 .sp-missing-badge{display:inline-block;background:#E67E22;color:#fff;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;}
 .sp-table{width:100%;border-collapse:collapse;font-size:11px;}
@@ -286,6 +287,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
         <select id="spReadyFilter" class="sp-filter-select" onchange="refreshSuccessionView()">
           <option value="">ทุกสถานะ Successor</option>
         </select>
+        <button class="sp-filter-clear" id="spShowNamesBtn" onclick="toggleShowNames()">👁 แสดงชื่อบนกราฟ</button>
         <button class="sp-filter-clear" onclick="clearTableFilters()">ล้าง filter</button>
       </div>
       <div class="matrix-box">
@@ -405,6 +407,7 @@ let emps=[],dm={},em={},co={};
 let succData=[]; // ข้อมูล succession planning
 let succUnlocked=false;
 let activeSuccDiv=''; // สายงานที่เลือกในหน้า Succession Planning (''=ทั้งหมด)
+let succShowNames=false; // toggle แสดงชื่อบนกราฟ (ผู้ใช้กดเอง ไม่ขึ้นกับจำนวนคนอัตโนมัติ)
 let currentPage='org';
 let adiv='ALL', ulas=null, cemp=null;
 
@@ -1033,7 +1036,7 @@ function renderMatrix(data){
     return;
   }
 
-  const showLabels=plottable.length<=LABEL_SHOW_THRESHOLD;
+  const showLabels=succShowNames||plottable.length<=LABEL_SHOW_THRESHOLD;
 
   // ── จัดกลุ่มจุดที่คะแนนใกล้กันมาก (cluster) ──────────────────────────────
   const points=plottable.map(d=>({d,x:norm(d.riskScore),y:norm(d.businessImpact)}));
@@ -1097,7 +1100,7 @@ function renderMatrix(data){
   if(!showLabels){
     const hint=document.createElement('div');
     hint.style.cssText='position:absolute;top:4px;right:8px;font-size:9.5px;color:var(--gy);background:rgba(255,255,255,.85);padding:2px 6px;border-radius:4px;';
-    hint.textContent='ชื่อซ่อนอยู่ — เลื่อนเมาส์ชี้จุด หรือเลือกสายงานเพื่อดูชื่อ';
+    hint.textContent='ชื่อซ่อนอยู่ — กด "แสดงชื่อบนกราฟ" หรือเลือกสายงานเพื่อดูชื่อ';
     grid.appendChild(hint);
   }
 }
@@ -1272,6 +1275,13 @@ function refreshSuccessionView(){
   renderMatrix(filtered);
   renderLegend(filtered);
   renderSuccTable();
+}
+
+// ── toggle แสดง/ซ่อนชื่อบนกราฟ — ผู้ใช้กดเอง ยึดตาม filter ปัจจุบัน ──
+function toggleShowNames(){
+  succShowNames=!succShowNames;
+  document.getElementById('spShowNamesBtn').classList.toggle('on',succShowNames);
+  refreshSuccessionView();
 }
 
 function clearTableFilters(){
