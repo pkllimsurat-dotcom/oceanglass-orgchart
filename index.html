@@ -194,6 +194,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-filter-clear:hover{background:var(--red);color:#fff;border-color:var(--red);}
 .sp-filter-clear.on{background:var(--red);color:#fff;border-color:var(--red);}
 .sp-row-missing{background:#FFF8E1!important;}
+.sp-exempt-badge{display:inline-block;background:#EEF0F2;color:#6B7280;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;}
 .sp-missing-badge{display:inline-block;background:#E67E22;color:#fff;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;}
 .sp-table{width:100%;border-collapse:collapse;font-size:11px;}
 .sp-table th{background:var(--blk);color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0;}
@@ -404,6 +405,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 // ══════════════════════════ CONFIG ══════════════════════════════════════
 const XL = 'employees.xlsx';
 const SUCC_XL = 'succession.xlsx'; // ไฟล์ Succession Planning (upload แยกจาก employees.xlsx)
+// ผู้บริหารที่เป็น Key Position แต่ไม่อยู่ในขอบเขตการประเมิน (Executive Director) — แสดงป้ายเทา ไม่ถือว่าลืมกรอกคะแนน
+// เพิ่ม/ลบ emp_id ได้ที่นี่
+const EVAL_EXEMPT=['169024','268029','166006','168015'];
 const PROFILE_DIR = 'profiles/'; // โฟลเดอร์เก็บไฟล์ Successor Profile (Word/PDF)
 // Division สิทธิ์ต่อ emp_id (แก้ที่นี่เมื่อต้องการเปลี่ยน division)
 // password อ่านจาก Excel column 'password' อัตโนมัติ
@@ -1015,10 +1019,11 @@ async function loadSuccessionData(){
         riskScore:null, quadrant:'', succName:'', succReady:'', succFile:'', notes:'',
         division: computeDivision(e.id),
         hasScore:false, // ยังไม่มีคะแนน — ต้องตามไปกรอกใน succession.xlsx
+        exempt:EVAL_EXEMPT.includes(e.id),
       });
     });
 
-    const missingCount=newKeyPositions.length;
+    const missingCount=newKeyPositions.filter(e=>!EVAL_EXEMPT.includes(e.id)).length;
     const missingMsg=missingCount>0
       ?` <span style="color:#E67E22;font-weight:600;">⚠️ มี ${missingCount} ตำแหน่งใหม่ที่ยังไม่ได้กรอกคะแนน (ดูแถวสีเหลืองในตาราง)</span>`
       :'';
@@ -1268,7 +1273,7 @@ function exportSuccession(){
   });
 
   // Key Position ใหม่ที่ยังไม่มีคะแนน
-  succData.filter(d=>!d.hasScore).forEach(d=>{
+  succData.filter(d=>!d.hasScore&&!d.exempt).forEach(d=>{
     const e=em[d.eid];
     let bdStr='',ageVal='',ageScore='';
     if(e&&e.bd){
@@ -1437,7 +1442,8 @@ function renderSuccTable(){
 
   const sorted=filtered.sort((a,b)=>{
     // แถวที่ยังไม่มีคะแนนไปอยู่บนสุด เพื่อเตือนให้กรอก
-    if(a.hasScore!==b.hasScore) return a.hasScore?1:-1;
+    const ga=a.hasScore?1:(a.exempt?2:0), gb=b.hasScore?1:(b.exempt?2:0);
+    if(ga!==gb) return ga-gb;
     const ra=a.riskScore===null?-1:a.riskScore, rb=b.riskScore===null?-1:b.riskScore;
     const ba=a.businessImpact===null?-1:a.businessImpact, bb=b.businessImpact===null?-1:b.businessImpact;
     return (rb+bb)-(ra+ba);
@@ -1450,11 +1456,11 @@ function renderSuccTable(){
 
   sorted.forEach(d=>{
     const tr=document.createElement('tr');
-    if(!d.hasScore) tr.className='sp-row-missing';
+    if(!d.hasScore&&!d.exempt) tr.className='sp-row-missing';
     tr.onclick=()=>showSuccDetail(d);
     const quadBadge=d.quadrant
       ? `<span class="sp-quad-badge" style="background:${QUAD_COLOR[d.quadrant]||'#999'}">${d.quadrant.replace('Impact + ','/').replace('Risk','')}</span>`
-      : (d.hasScore?'<span style="color:#bbb">—</span>':'<span class="sp-missing-badge">ยังไม่กรอกคะแนน</span>');
+      : (d.hasScore?'<span style="color:#bbb">—</span>':(d.exempt?'<span class="sp-exempt-badge">ไม่อยู่ในขอบเขตการประเมิน</span>':'<span class="sp-missing-badge">ยังไม่กรอกคะแนน</span>'));
     const readyCls={now:'sp-r-now','1y':'sp-r-1y','3y':'sp-r-3y',none:'sp-r-none'}[readyKey(d.succReady)]||'';
     const readyBadge=d.succReady?`<span class="sp-readiness ${readyCls}">${d.succReady}</span>`:'—';
     tr.innerHTML=`
