@@ -983,6 +983,14 @@ async function loadSuccessionData(){
       division: sv(r['สายงาน']) || computeDivision(sv(r.emp_id)),
       hasScore: true,
     }));
+    // employees.xlsx เป็นตัวหลักของรายชื่อ Key Position: แถวใน succession.xlsx ที่ไม่ได้เป็น KP ในไฟล์พนักงาน
+    // (เช่น ลาออกแล้ว หรือถูกเอาธง KP ออก) จะไม่แสดง
+    {
+      const before=succData.length;
+      const dropped=succData.filter(d=>!(em[d.eid]&&em[d.eid].ex1&&em[d.eid].ex1.trim())).map(d=>d.eid);
+      succData=succData.filter(d=>em[d.eid]&&em[d.eid].ex1&&em[d.eid].ex1.trim());
+      if(dropped.length) console.info('Succession: ข้ามแถวที่ไม่ได้เป็น KP ใน employees.xlsx แล้ว',dropped);
+    }
 
     // ── ตรวจหา Key Position ใหม่จาก employees.xlsx ที่ยังไม่มีใน succession.xlsx ──
     const existingIds=new Set(succData.map(d=>d.eid));
