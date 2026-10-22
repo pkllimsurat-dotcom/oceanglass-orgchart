@@ -144,6 +144,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-master-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;padding:10px 14px;background:var(--lg);border-radius:6px;}
 .sp-master-filter .sp-filter-input{flex:1;min-width:160px;}
 
+/* Multi-select dropdown (Quadrant / Successor) */
+.msel{position:relative;}
+.msel-btn{border:1px solid var(--mid);border-radius:6px;padding:7px 10px;font-size:12px;background:var(--wh);color:var(--blk);cursor:pointer;white-space:nowrap;}
+.msel-btn.on{border-color:var(--red);background:#FDECEC;color:var(--red);font-weight:600;}
+.msel-panel{display:none;position:absolute;top:100%;left:0;margin-top:4px;min-width:230px;background:#fff;border:1px solid var(--mid);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);padding:6px;z-index:60;}
+.msel.open .msel-panel{display:block;}
+.msel-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:5px;font-size:12px;cursor:pointer;}
+.msel-item:hover{background:var(--lg);}
+.msel-item input{accent-color:var(--red);}
+.msel-dot{width:10px;height:10px;border-radius:50%;flex:none;}
+.msel-sep{border-top:1px solid var(--mid);margin:4px 0;}
+.msel-act{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 8px;font-size:12px;color:var(--red);cursor:pointer;border-radius:5px;}
+.msel-act:hover{background:var(--lg);}
+
 /* Cluster dot: หลายคนคะแนนใกล้กันมาก รวมเป็นจุดเดียว */
 .matrix-cluster{position:absolute;width:22px;height:22px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;transition:transform .15s;z-index:2;}
 .matrix-cluster:hover{transform:scale(1.25);z-index:6;}
@@ -288,12 +302,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
         <select id="spGlobalDivFilter" class="sp-filter-select" onchange="refreshSuccessionView()">
           <option value="">ทุกสายงาน</option>
         </select>
-        <select id="spQuadFilter" class="sp-filter-select" onchange="refreshSuccessionView()">
-          <option value="">ทุก Quadrant</option>
-        </select>
-        <select id="spReadyFilter" class="sp-filter-select" onchange="refreshSuccessionView()">
-          <option value="">ทุกสถานะ Successor</option>
-        </select>
+        <div class="msel" id="msQuad"></div>
+        <div class="msel" id="msReady"></div>
         <button class="sp-filter-clear" id="spShowNamesBtn" onclick="toggleShowNames()">👁 แสดงชื่อบนกราฟ</button>
         <button class="sp-filter-clear" onclick="clearTableFilters()">ล้าง filter</button>
       </div>
@@ -1292,8 +1302,6 @@ function exportSuccession(){
 
 function populateFilters(){
   const gdivSel=document.getElementById('spGlobalDivFilter');
-  const quadSel=document.getElementById('spQuadFilter');
-  const readySel=document.getElementById('spReadyFilter');
 
   // สายงาน (master filter เหนือกราฟ) — เติมแบบ dynamic รองรับสายงานใหม่/เก่าถูกลบในอนาคต
   const prevVal=gdivSel.value;
@@ -1305,16 +1313,75 @@ function populateFilters(){
   });
   if(divs.includes(prevVal)) gdivSel.value=prevVal; // คงค่าที่เลือกไว้ถ้ายังมีอยู่
 
-  quadSel.innerHTML='<option value="">ทุก Quadrant</option>';
-  Object.keys(QUAD_COLOR).forEach(q=>{
-    const opt=document.createElement('option'); opt.value=q; opt.textContent=q;
-    quadSel.appendChild(opt);
-  });
-  readySel.innerHTML='<option value="">ทุกสถานะ Successor</option>';
-  ['Ready Now','Ready in 1 Year','Ready in 3 Years','No Successor','—'].forEach(r=>{
-    const opt=document.createElement('option'); opt.value=r; opt.textContent=r==='—'?'ยังไม่ระบุ':r;
-    readySel.appendChild(opt);
-  });
+  buildMsel('quad','msQuad','ทุก Quadrant',
+    Object.keys(QUAD_COLOR).map(q=>({value:q,label:q,color:QUAD_COLOR[q]})),
+    [{label:'เลือกเฉพาะ High Impact (2 กลุ่ม)',values:['High Impact + High Risk','High Impact + Low Risk']}]);
+  buildMsel('ready','msReady','ทุกสถานะ Successor',[
+    {value:'now',label:'พร้อมทันที',color:'#27AE60'},
+    {value:'1y',label:'พร้อม 1-2 ปี',color:'#E6B800'},
+    {value:'3y',label:'พร้อม 3-5 ปี',color:'#E67E22'},
+    {value:'none',label:'ยังไม่มีผู้สืบทอด / ยังไม่ระบุ',color:'#C0392B'},
+  ],[{label:'เลือกเฉพาะที่มีผู้สืบทอดแล้ว',values:['now','1y','3y']}]);
+}
+
+// ── Multi-select dropdown (เลือกได้หลายเงื่อนไข; ไม่เลือกเลย = ทั้งหมด) ──
+const MSEL={quad:new Set(),ready:new Set()};
+const MSEL_META={};
+function buildMsel(key,hostId,allLabel,items,presets){
+  MSEL_META[key]={hostId,allLabel,items,presets};
+  const host=document.getElementById(hostId); if(!host) return;
+  // เก็บเฉพาะค่าที่ยังมีอยู่
+  const valid=new Set(items.map(i=>i.value));
+  [...MSEL[key]].forEach(v=>{ if(!valid.has(v)) MSEL[key].delete(v); });
+  host.innerHTML=`<button type="button" class="msel-btn" onclick="toggleMsel('${key}',event)"></button>
+    <div class="msel-panel" onclick="event.stopPropagation()">
+      ${items.map(i=>`<label class="msel-item"><input type="checkbox" data-v="${i.value}" ${MSEL[key].has(i.value)?'checked':''} onchange="onMselChange('${key}')"/><span class="msel-dot" style="background:${i.color||'#999'}"></span>${i.label}</label>`).join('')}
+      <div class="msel-sep"></div>
+      ${(presets||[]).map((p,n)=>`<button type="button" class="msel-act" onclick="applyMselPreset('${key}',${n})">${p.label}</button>`).join('')}
+      <button type="button" class="msel-act" style="color:var(--gy)" onclick="clearMsel('${key}')">ล้างการเลือก</button>
+    </div>`;
+  updateMselBtn(key);
+}
+function toggleMsel(key,ev){
+  ev.stopPropagation();
+  const host=document.getElementById(MSEL_META[key].hostId);
+  const was=host.classList.contains('open');
+  document.querySelectorAll('.msel.open').forEach(x=>x.classList.remove('open'));
+  if(!was) host.classList.add('open');
+}
+document.addEventListener('click',()=>document.querySelectorAll('.msel.open').forEach(x=>x.classList.remove('open')));
+function onMselChange(key){
+  const host=document.getElementById(MSEL_META[key].hostId);
+  MSEL[key]=new Set([...host.querySelectorAll('input[type=checkbox]')].filter(c=>c.checked).map(c=>c.dataset.v));
+  updateMselBtn(key); refreshSuccessionView();
+}
+function applyMselPreset(key,n){
+  MSEL[key]=new Set(MSEL_META[key].presets[n].values);
+  syncMselChecks(key); updateMselBtn(key); refreshSuccessionView();
+}
+function clearMsel(key){
+  MSEL[key]=new Set(); syncMselChecks(key); updateMselBtn(key); refreshSuccessionView();
+}
+function syncMselChecks(key){
+  const host=document.getElementById(MSEL_META[key].hostId); if(!host) return;
+  host.querySelectorAll('input[type=checkbox]').forEach(c=>{ c.checked=MSEL[key].has(c.dataset.v); });
+}
+function updateMselBtn(key){
+  const m=MSEL_META[key], host=document.getElementById(m.hostId); if(!host) return;
+  const btn=host.querySelector('.msel-btn'), n=MSEL[key].size;
+  let txt=m.allLabel;
+  if(n===1) txt=m.items.find(i=>MSEL[key].has(i.value))?.label||txt;
+  else if(n>1) txt=m.allLabel.replace('ทุก','')+' ('+n+' เงื่อนไข)';
+  btn.textContent=txt+' ▾'; btn.classList.toggle('on',n>0);
+}
+// แปลงข้อความสถานะ successor (ภาษาไทย/อังกฤษ/ว่าง) เป็นกลุ่มมาตรฐาน
+function readyKey(v){
+  const t=String(v||'').trim().toLowerCase();
+  if(!t||t==='no successor'||t.includes('ยังไม่มี')||t==='—'||t==='-') return 'none';
+  if(t.includes('ทันที')||t.includes('now')) return 'now';
+  if(t.includes('1-2')||t.includes('1 year')||t.includes('1 ปี')) return '1y';
+  if(t.includes('3-5')||t.includes('3 year')||t.includes('3 ปี')) return '3y';
+  return 'none';
 }
 
 // ── ตัวกรองรวม: ค้นหา + สายงาน + Quadrant + สถานะ Successor ──────────────
@@ -1322,17 +1389,13 @@ function populateFilters(){
 function getFilteredSuccData(){
   const q=(document.getElementById('spSearchInput')?.value||'').trim().toLowerCase();
   activeSuccDiv=document.getElementById('spGlobalDivFilter')?.value||'';
-  const quadF=document.getElementById('spQuadFilter')?.value||'';
-  const readyF=document.getElementById('spReadyFilter')?.value||'';
+  const quadF=MSEL.quad, readyF=MSEL.ready;
 
   return succData.filter(d=>{
     if(activeSuccDiv && d.division!==activeSuccDiv) return false;
     if(q && !(d.name.toLowerCase().includes(q)||d.pos.toLowerCase().includes(q))) return false;
-    if(quadF && d.quadrant!==quadF) return false;
-    if(readyF){
-      const dr=d.succReady||'—';
-      if(dr!==readyF) return false;
-    }
+    if(quadF.size && !quadF.has(d.quadrant)) return false;
+    if(readyF.size && !readyF.has(readyKey(d.succReady))) return false;
     return true;
   });
 }
@@ -1355,8 +1418,8 @@ function toggleShowNames(){
 function clearTableFilters(){
   document.getElementById('spSearchInput').value='';
   document.getElementById('spGlobalDivFilter').value='';
-  document.getElementById('spQuadFilter').value='';
-  document.getElementById('spReadyFilter').value='';
+  MSEL.quad=new Set(); MSEL.ready=new Set();
+  ['quad','ready'].forEach(k=>{ if(MSEL_META[k]){ syncMselChecks(k); updateMselBtn(k); } });
   refreshSuccessionView();
 }
 
@@ -1392,7 +1455,7 @@ function renderSuccTable(){
     const quadBadge=d.quadrant
       ? `<span class="sp-quad-badge" style="background:${QUAD_COLOR[d.quadrant]||'#999'}">${d.quadrant.replace('Impact + ','/').replace('Risk','')}</span>`
       : (d.hasScore?'<span style="color:#bbb">—</span>':'<span class="sp-missing-badge">ยังไม่กรอกคะแนน</span>');
-    const readyCls={'Ready Now':'sp-r-now','Ready in 1 Year':'sp-r-1y','Ready in 3 Years':'sp-r-3y','No Successor':'sp-r-none'}[d.succReady]||'';
+    const readyCls={now:'sp-r-now','1y':'sp-r-1y','3y':'sp-r-3y',none:'sp-r-none'}[readyKey(d.succReady)]||'';
     const readyBadge=d.succReady?`<span class="sp-readiness ${readyCls}">${d.succReady}</span>`:'—';
     tr.innerHTML=`
       <td><b>${d.name}</b></td>
@@ -1457,10 +1520,24 @@ function scoreRow(label, val, meaningMap, highlightColor){
   </div>`;
 }
 
+// เปิดไฟล์ Profile: ลองหาใน profiles/ ก่อน ถ้าไม่เจอลองหน้าหลัก (root) — รองรับทั้งสองที่
+async function openProfile(file){
+  const w=window.open('','_blank');
+  for(const base of [PROFILE_DIR,'']){
+    const u=base+encodeURIComponent(file);
+    try{
+      const r=await fetch(u,{method:'HEAD',cache:'no-cache'});
+      if(r.ok){ if(w) w.location.href=u; else location.href=u; return; }
+    }catch(e){}
+  }
+  if(w) w.close();
+  alert('ไม่พบไฟล์ '+file+' ใน GitHub (ตรวจสอบชื่อไฟล์ในคอลัมน์ successor_profile_file)');
+}
+
 function showSuccDetail(d){
   const quadColor=QUAD_COLOR[d.quadrant]||'#999';
   const fileLink=d.succFile
-    ? `<a href="${PROFILE_DIR}${d.succFile}" target="_blank" style="color:var(--red);text-decoration:underline;">📄 เปิดไฟล์ Successor Profile</a>`
+    ? `<a href="#" data-f="${d.succFile.replace(/"/g,'&quot;')}" onclick="openProfile(this.dataset.f);return false;" style="color:var(--red);text-decoration:underline;">📄 เปิดไฟล์ Successor Profile</a>`
     : '<span style="color:#bbb">ไม่มีไฟล์แนบ</span>';
 
   document.getElementById('succPav').textContent=ai({nth:d.name,nk:''});
