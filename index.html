@@ -206,6 +206,27 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-r-1y{background:#FFF3CD;color:#856404;}
 .sp-r-3y{background:#FFE5D0;color:#A85700;}
 .sp-r-none{background:#F8D7DA;color:#721C24;}
+.bench-box{background:#fff;border:1px solid var(--mid);border-radius:10px;padding:16px 18px;margin-bottom:18px;}
+.bench-head{font-size:14px;font-weight:700;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;margin-bottom:12px;}
+.bench-sub{font-size:11px;font-weight:400;color:var(--gy);}
+.bench-tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+.bench-tile{background:var(--lg);border-radius:8px;padding:10px 12px;}
+.bench-tile b{display:block;font-size:22px;line-height:1.1;}
+.bench-tile span{font-size:11px;color:var(--gy);}
+.bench-row{display:grid;grid-template-columns:130px 1fr 70px;gap:10px;align-items:center;margin:6px 0;font-size:12px;}
+.bench-bar{display:flex;height:22px;border-radius:5px;overflow:hidden;background:#EEE;}
+.bench-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:10.5px;font-weight:700;min-width:0;}
+.bench-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:var(--gy);margin:10px 0 4px;}
+.bench-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
+.bench-crit-title{font-size:13px;font-weight:700;margin:16px 0 8px;}
+.bench-crit{width:100%;border-collapse:collapse;font-size:12px;}
+.bench-crit th{text-align:left;color:var(--gy);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--mid);}
+.bench-crit td{padding:7px 8px;border-bottom:1px solid #F0F0F0;}
+.bench-crit tr.bcr{cursor:pointer;}
+.bench-crit tr.bcr:hover{background:var(--lg);}
+.bench-warn{color:#C0392B;font-weight:700;font-size:11px;}
+.bench-ok{color:#1E8449;font-weight:700;font-size:11px;}
+@media(max-width:760px){.bench-tiles{grid-template-columns:repeat(2,1fr);}.bench-row{grid-template-columns:90px 1fr 54px;}}
 .sp-r-ext{background:#E8E1F4;color:#4B3680;}
 
 .sp-detail-pop{background:var(--wh);border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);}
@@ -317,6 +338,15 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
         <div class="matrix-axis-x">ผลกระทบหากตำแหน่งนี้ว่าง (Vacancy Impact)</div>
       </div>
       <div class="sp-legend-row" id="spLegend"></div>
+
+      <div class="bench-box" id="benchBox">
+        <div class="bench-head">🧭 ภาพรวมความพร้อมของทายาท (Bench Strength) <span class="bench-sub" id="benchSub"></span></div>
+        <div class="bench-tiles" id="benchTiles"></div>
+        <div id="benchBars"></div>
+        <div class="bench-legend" id="benchLegend"></div>
+        <div class="bench-crit-title">⚠️ ตำแหน่งวิกฤต — High Impact + High Risk <span class="bench-sub">(คลิกแถวเพื่อดูรายละเอียด)</span></div>
+        <div id="benchCrit"></div>
+      </div>
 
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;position:relative;">
         <div class="sp-table-toggle" style="flex:1;" onclick="toggleTable()">
@@ -1035,6 +1065,38 @@ async function loadSuccessionData(){
       ?` <span style="color:#E67E22;font-weight:600;">⚠️ มี ${missingCount} ตำแหน่งใหม่ที่ยังไม่ได้กรอกคะแนน (ดูแถวสีเหลืองในตาราง)</span>`
       :'';
     intro.innerHTML=`พบตำแหน่ง Key Position ทั้งหมด <b>${succData.length}</b> ตำแหน่ง — คลิกที่จุดในกราฟหรือแถวในตารางเพื่อดูรายละเอียด${missingMsg}`;
+    // ── ชีต "ทายาท" (ไม่บังคับ): 1 แถว = ทายาท 1 คน ของตำแหน่งหนึ่ง → ตำแหน่งเดียวมีทายาทได้หลายคน ──
+    // ถ้าตำแหน่งนั้นมีแถวในชีตนี้ จะใช้ข้อมูลจากชีตนี้แทนคอลัมน์ successor_* ในชีตหลัก
+    const sheetMap={};
+    const wsS=wb.Sheets['ทายาท'];
+    if(wsS){
+      XLSX.utils.sheet_to_json(wsS,{defval:''}).forEach(r=>{
+        const pid=sv(r.position_emp_id); if(!pid||pid==='position_emp_id') return;
+        const eid2=sv(r.successor_emp_id);
+        const nm=sv(r.successor_name)||(eid2&&em[eid2]?em[eid2].nth:'')||eid2;
+        const rd=sv(r.readiness);
+        if(!nm&&!rd) return;
+        (sheetMap[pid]=sheetMap[pid]||[]).push({eid:eid2,name:nm||'(ไม่ระบุชื่อ)',ready:rd,notes:sv(r.notes)});
+      });
+    }
+    const RANK={now:0,'1y':1,'3y':2,ext:3,none:4};
+    succData.forEach(d=>{
+      let list=sheetMap[d.eid];
+      if(!list||!list.length){
+        list=d.succName?[{eid:'',name:d.succName,ready:d.succReady,notes:''}]:[];
+      }
+      list.forEach(x=>{ x.k=(/สรรหาจากภายนอก/.test(x.name+' '+x.ready))?'ext':(x.ready?readyKey(x.ready):'none'); });
+      d.succList=list;
+      if(!list.length){ d.sk='none'; return; }
+      const best=list.slice().sort((a,b)=>RANK[a.k]-RANK[b.k])[0];
+      d.sk=best.k;
+      if(sheetMap[d.eid]&&sheetMap[d.eid].length){
+        const internal=list.filter(x=>x.k!=='ext');
+        d.succName=internal.length?internal.map(x=>x.name).join(', '):'สรรหาจากภายนอก';
+        d.succReady=best.ready||'';
+      }
+    });
+
     populateFilters();
     refreshSuccessionView();
   }).catch(ex=>{
@@ -1390,6 +1452,7 @@ function updateMselBtn(key){
 // แปลงข้อความสถานะ successor (ภาษาไทย/อังกฤษ/ว่าง) เป็นกลุ่มมาตรฐาน
 // กลุ่มสถานะของแถว: ถ้า successor_name เป็น "สรรหาจากภายนอก" นับเป็น ext
 function succKey(d){
+  if(d.sk) return d.sk;
   if(String(d.succName||'').includes('สรรหาจากภายนอก')) return 'ext';
   return readyKey(d.succReady);
 }
@@ -1423,7 +1486,55 @@ function refreshSuccessionView(){
   const filtered=getFilteredSuccData();
   renderMatrix(filtered);
   renderLegend(filtered);
+  renderBench(filtered);
   renderSuccTable();
+}
+
+// ── Bench Strength: ภาพรวมความพร้อมของทายาทแยกตามสายงาน + ตำแหน่งวิกฤต ──
+const BENCH_CAT=[
+  {k:'now',label:'พร้อมทันที',color:'#1E8449'},
+  {k:'1y',label:'พร้อม 1-2 ปี',color:'#7DBE3C'},
+  {k:'3y',label:'พร้อม 3-5 ปี',color:'#E6A100'},
+  {k:'ext',label:'สรรหาจากภายนอก',color:'#7B61A8'},
+  {k:'none',label:'ยังไม่ระบุผู้สืบทอด',color:'#B8B8B8'},
+];
+function renderBench(filtered){
+  const box=document.getElementById('benchBox'); if(!box) return;
+  const data=filtered.filter(d=>d.hasScore);   // เฉพาะตำแหน่งที่ประเมินแล้ว
+  const sub=document.getElementById('benchSub');
+  sub.textContent='ตามตัวกรองด้านบน — '+data.length+' ตำแหน่ง (เลือก "เฉพาะ High Impact" ที่ตัวกรอง Quadrant เพื่อดูกลุ่มเป้าหมาย)';
+  const cnt={now:0,'1y':0,'3y':0,ext:0,none:0};
+  data.forEach(d=>cnt[succKey(d)]++);
+  const n=data.length||1, pct=x=>Math.round(x*100/n);
+  document.getElementById('benchTiles').innerHTML=[
+    ['ตำแหน่งทั้งหมด',data.length,'#222'],
+    ['ทายาทพร้อมภายใน 2 ปี',cnt.now+cnt['1y']+' ('+pct(cnt.now+cnt['1y'])+'%)','#1E8449'],
+    ['มีทายาท แต่ต้องพัฒนา 3-5 ปี',cnt['3y']+' ('+pct(cnt['3y'])+'%)','#E6A100'],
+    ['ต้องสรรหาจากภายนอก',cnt.ext+' ('+pct(cnt.ext)+'%)','#7B61A8'],
+    ['ยังไม่ระบุผู้สืบทอด',cnt.none+' ('+pct(cnt.none)+'%)','#888'],
+  ].map(t=>`<div class="bench-tile"><b style="color:${t[2]}">${t[1]}</b><span>${t[0]}</span></div>`).join('');
+  // แยกตามสายงาน
+  const divs=[...new Set(data.map(d=>d.division||'—'))].sort();
+  document.getElementById('benchBars').innerHTML=divs.map(dv=>{
+    const rows=data.filter(d=>(d.division||'—')===dv);
+    const c={now:0,'1y':0,'3y':0,ext:0,none:0};
+    rows.forEach(d=>c[succKey(d)]++);
+    const segs=BENCH_CAT.filter(x=>c[x.k]).map(x=>`<div class="bench-seg" style="width:${c[x.k]*100/rows.length}%;background:${x.color}" title="${x.label}: ${c[x.k]}">${c[x.k]}</div>`).join('');
+    return `<div class="bench-row"><div><b>${dv}</b></div><div class="bench-bar">${segs}</div><div style="text-align:right;color:var(--gy)">${rows.length} ตำแหน่ง</div></div>`;
+  }).join('')||'<div class="sp-empty">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</div>';
+  document.getElementById('benchLegend').innerHTML=BENCH_CAT.map(x=>`<span><i style="background:${x.color}"></i>${x.label}</span>`).join('');
+  // ตำแหน่งวิกฤต: High Impact + High Risk
+  const crit=data.filter(d=>d.quadrant==='High Impact + High Risk').sort((a,b)=>(b.riskScore||0)-(a.riskScore||0));
+  const el=document.getElementById('benchCrit');
+  if(!crit.length){ el.innerHTML='<div class="sp-empty">ไม่มีตำแหน่งในกลุ่ม High Impact + High Risk ตามตัวกรองปัจจุบัน</div>'; return; }
+  const lbl={now:'พร้อมทันที','1y':'พร้อม 1-2 ปี','3y':'พร้อม 3-5 ปี',ext:'สรรหาจากภายนอก',none:'ยังไม่ระบุ'};
+  el.innerHTML=`<table class="bench-crit"><thead><tr><th>ตำแหน่ง</th><th>ผู้ดำรงตำแหน่ง</th><th>สายงาน</th><th>Risk</th><th>ทายาท</th><th>ความพร้อม</th><th>สถานะ</th></tr></thead><tbody>`+
+    crit.map((d,i)=>{
+      const k=succKey(d), ok=(k==='now'||k==='1y');
+      const names=(d.succList||[]).filter(x=>x.k!=='ext').map(x=>x.name).join(', ')||(k==='ext'?'สรรหาจากภายนอก':'—');
+      return `<tr class="bcr" data-i="${i}"><td>${d.pos}</td><td>${d.name}</td><td>${d.division||'—'}</td><td>${d.riskScore??'—'}</td><td>${names}</td><td>${lbl[k]}</td><td>${ok?'<span class="bench-ok">✓ มีทายาทพร้อมใน 2 ปี</span>':'<span class="bench-warn">⚠ ยังไม่มีทายาทพร้อมใน 2 ปี</span>'}</td></tr>`;
+    }).join('')+`</tbody></table>`;
+  el.querySelectorAll('tr.bcr').forEach(tr=>{ tr.onclick=()=>showSuccDetail(crit[+tr.dataset.i]); });
 }
 
 // ── toggle แสดง/ซ่อนชื่อบนกราฟ — ผู้ใช้กดเอง ยึดตาม filter ปัจจุบัน ──
@@ -1584,8 +1695,12 @@ function showSuccDetail(d){
   }
 
   html+=`<div class="ir"><span class="il">Quadrant</span><span class="iv"><span class="sp-quad-badge" style="background:${quadColor}">${d.quadrant||'—'}</span></span></div>`;
-  html+=`<div class="ir"><span class="il">ผู้สืบทอด</span><span class="iv">${d.succName||'—'}</span></div>`;
-  html+=`<div class="ir"><span class="il">ความพร้อม</span><span class="iv">${d.succReady||'—'}</span></div>`;
+  if(d.succList&&d.succList.length>1){
+    html+=`<div class="ir"><span class="il">ผู้สืบทอด (${d.succList.length} คน)</span><span class="iv" style="text-align:right">${d.succList.map(x=>`${x.name}${x.ready?' — '+x.ready:''}${x.notes?'<br><small style="color:var(--gy)">'+x.notes+'</small>':''}`).join('<br>')}</span></div>`;
+  }else{
+    html+=`<div class="ir"><span class="il">ผู้สืบทอด</span><span class="iv">${d.succName||'—'}</span></div>`;
+    html+=`<div class="ir"><span class="il">ความพร้อม</span><span class="iv">${d.succReady||'—'}</span></div>`;
+  }
   html+=`<div class="ir"><span class="il">Profile</span><span class="iv">${fileLink}</span></div>`;
   if(d.notes) html+=`<div class="ir"><span class="il">หมายเหตุ</span><span class="iv">${d.notes}</span></div>`;
 
