@@ -206,6 +206,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-r-1y{background:#FFF3CD;color:#856404;}
 .sp-r-3y{background:#FFE5D0;color:#A85700;}
 .sp-r-none{background:#F8D7DA;color:#721C24;}
+.sp-r-ext{background:#E8E1F4;color:#4B3680;}
 
 .sp-detail-pop{background:var(--wh);border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);}
 .sp-empty{text-align:center;padding:40px 20px;color:var(--gy);font-size:13px;}
@@ -581,6 +582,12 @@ async function sha256Hex(str){
   const buf=await crypto.subtle.digest('SHA-256',enc);
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
+// ตรวจว่ามีรหัสผ่านใน employees.xlsx ที่ยังเป็นข้อความธรรมดา (ไม่ใช่ SHA-256 64 ตัวอักษร) หรือไม่
+// มักเกิดหลังนำเข้าข้อมูล HR ใหม่ทับคอลัมน์ password — ใช้เตือนเมื่อ login ไม่สำเร็จ
+function pwPlainDetected(){
+  return Object.values(pwMap).some(v=>!/^[0-9a-f]{64}$/i.test(String(v).trim()));
+}
+
 // หา emp_id ที่ hash(emp_id:pw) ตรงกับค่าที่เก็บใน pwMap
 async function findMatchedEmpId(pw){
   for(const eid of Object.keys(pwMap)){
@@ -870,7 +877,7 @@ async function tul(){
   const err=document.getElementById('lke');
   if(!pw){err.textContent='กรุณากรอกรหัสผ่าน';return;}
   const matched=await findMatchedEmpId(pw);
-  if(!matched){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
+  if(!matched){err.textContent='รหัสผ่านไม่ถูกต้อง'+(pwPlainDetected()?' — ⚠ ตรวจพบรหัสผ่านใน employees.xlsx ที่ยังไม่ได้เข้ารหัส (hash) กรุณาแจ้งผู้ดูแลระบบ':'');return;}
   // รายชื่อ emp_id ที่เห็นได้ทุกสายงาน (ALL ACCESS)
   // เพิ่ม/ลบได้ที่นี่
   const ALL_ACCESS=['168001','159029','266049'];
@@ -954,7 +961,7 @@ async function trySuccUnlock(){
   const err=document.getElementById('succLkErr');
   if(!pw){err.textContent='กรุณากรอกรหัสผ่าน';return;}
   const matched=await findMatchedEmpId(pw);
-  if(!matched){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
+  if(!matched){err.textContent='รหัสผ่านไม่ถูกต้อง'+(pwPlainDetected()?' — ⚠ ตรวจพบรหัสผ่านใน employees.xlsx ที่ยังไม่ได้เข้ารหัส (hash) กรุณาแจ้งผู้ดูแลระบบ':'');return;}
   succUnlocked=true;
   document.getElementById('succLockScreen').style.display='none';
   document.getElementById('succContent').style.display='';
@@ -1325,7 +1332,8 @@ function populateFilters(){
     {value:'now',label:'พร้อมทันที',color:'#27AE60'},
     {value:'1y',label:'พร้อม 1-2 ปี',color:'#E6B800'},
     {value:'3y',label:'พร้อม 3-5 ปี',color:'#E67E22'},
-    {value:'none',label:'ยังไม่มีผู้สืบทอด / ยังไม่ระบุ',color:'#C0392B'},
+    {value:'ext',label:'สรรหาจากภายนอก',color:'#7B61A8'},
+    {value:'none',label:'ยังไม่ระบุผู้สืบทอด',color:'#C0392B'},
   ],[{label:'เลือกเฉพาะที่มีผู้สืบทอดแล้ว',values:['now','1y','3y']}]);
 }
 
@@ -1380,6 +1388,11 @@ function updateMselBtn(key){
   btn.textContent=txt+' ▾'; btn.classList.toggle('on',n>0);
 }
 // แปลงข้อความสถานะ successor (ภาษาไทย/อังกฤษ/ว่าง) เป็นกลุ่มมาตรฐาน
+// กลุ่มสถานะของแถว: ถ้า successor_name เป็น "สรรหาจากภายนอก" นับเป็น ext
+function succKey(d){
+  if(String(d.succName||'').includes('สรรหาจากภายนอก')) return 'ext';
+  return readyKey(d.succReady);
+}
 function readyKey(v){
   const t=String(v||'').trim().toLowerCase();
   if(!t||t==='no successor'||t.includes('ยังไม่มี')||t==='—'||t==='-') return 'none';
@@ -1400,7 +1413,7 @@ function getFilteredSuccData(){
     if(activeSuccDiv && d.division!==activeSuccDiv) return false;
     if(q && !(d.name.toLowerCase().includes(q)||d.pos.toLowerCase().includes(q))) return false;
     if(quadF.size && !quadF.has(d.quadrant)) return false;
-    if(readyF.size && !readyF.has(readyKey(d.succReady))) return false;
+    if(readyF.size && !readyF.has(succKey(d))) return false;
     return true;
   });
 }
@@ -1461,8 +1474,9 @@ function renderSuccTable(){
     const quadBadge=d.quadrant
       ? `<span class="sp-quad-badge" style="background:${QUAD_COLOR[d.quadrant]||'#999'}">${d.quadrant.replace('Impact + ','/').replace('Risk','')}</span>`
       : (d.hasScore?'<span style="color:#bbb">—</span>':(d.exempt?'<span class="sp-exempt-badge">ไม่อยู่ในขอบเขตการประเมิน</span>':'<span class="sp-missing-badge">ยังไม่กรอกคะแนน</span>'));
-    const readyCls={now:'sp-r-now','1y':'sp-r-1y','3y':'sp-r-3y',none:'sp-r-none'}[readyKey(d.succReady)]||'';
-    const readyBadge=d.succReady?`<span class="sp-readiness ${readyCls}">${d.succReady}</span>`:'—';
+    const sk=succKey(d);
+    const readyCls={now:'sp-r-now','1y':'sp-r-1y','3y':'sp-r-3y',ext:'sp-r-ext',none:'sp-r-none'}[sk]||'';
+    const readyBadge=sk==='ext'?'<span class="sp-readiness sp-r-ext">สรรหาภายนอก</span>':(d.succReady?`<span class="sp-readiness ${readyCls}">${d.succReady}</span>`:'—');
     tr.innerHTML=`
       <td><b>${d.name}</b></td>
       <td>${d.division||'—'}</td>
@@ -1529,12 +1543,16 @@ function scoreRow(label, val, meaningMap, highlightColor){
 // เปิดไฟล์ Profile: ลองหาใน profiles/ ก่อน ถ้าไม่เจอลองหน้าหลัก (root) — รองรับทั้งสองที่
 async function openProfile(file){
   const w=window.open('','_blank');
-  for(const base of [PROFILE_DIR,'']){
-    const u=base+encodeURIComponent(file);
-    try{
-      const r=await fetch(u,{method:'HEAD',cache:'no-cache'});
-      if(r.ok){ if(w) w.location.href=u; else location.href=u; return; }
-    }catch(e){}
+  // ถ้าชื่อไฟล์ใน Excel ลืมใส่นามสกุล ลองเติม .docx / .pdf ให้อัตโนมัติ
+  const names=/\.[A-Za-z0-9]{2,5}$/.test(file)?[file]:[file,file+'.docx',file+'.pdf'];
+  for(const nm of names){
+    for(const base of [PROFILE_DIR,'']){
+      const u=base+encodeURIComponent(nm);
+      try{
+        const r=await fetch(u,{method:'HEAD',cache:'no-cache'});
+        if(r.ok){ if(w) w.location.href=u; else location.href=u; return; }
+      }catch(e){}
+    }
   }
   if(w) w.close();
   alert('ไม่พบไฟล์ '+file+' ใน GitHub (ตรวจสอบชื่อไฟล์ในคอลัมน์ successor_profile_file)');
