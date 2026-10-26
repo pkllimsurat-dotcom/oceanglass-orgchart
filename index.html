@@ -185,7 +185,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-table-section{display:none;padding-top:14px;}
 .sp-table-section.open{display:block;}
 
-.sp-table-wrap{overflow-x:auto;}
+.sp-table-wrap{overflow:auto;max-height:70vh;} /* เลื่อนในกรอบตาราง เพื่อให้หัวตารางตรึงอยู่ด้านบนเสมอ */
 .sp-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
 .sp-filter-input{flex:1;min-width:160px;border:1px solid var(--mid);border-radius:6px;padding:7px 10px;font-size:12px;outline:none;}
 .sp-filter-input:focus{border-color:var(--red);}
@@ -197,7 +197,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-exempt-badge{display:inline-block;background:#EEF0F2;color:#6B7280;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;}
 .sp-missing-badge{display:inline-block;background:#E67E22;color:#fff;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;}
 .sp-table{width:100%;border-collapse:collapse;font-size:11px;}
-.sp-table th{background:var(--blk);color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0;}
+.sp-table th{background:var(--blk);color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:3;}
 .sp-table td{padding:8px 10px;border-bottom:1px solid var(--lg);white-space:nowrap;}
 .sp-table tr:hover{background:var(--lg);cursor:pointer;}
 .sp-quad-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;color:#fff;}
@@ -206,6 +206,23 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .sp-r-1y{background:#FFF3CD;color:#856404;}
 .sp-r-3y{background:#FFE5D0;color:#A85700;}
 .sp-r-none{background:#F8D7DA;color:#721C24;}
+.nb-box{background:#fff;border:1px solid var(--mid);border-radius:10px;padding:16px 18px;margin-bottom:18px;}
+.nb-note{font-size:11.5px;color:#856404;background:#FFF8E1;border-radius:6px;padding:8px 12px;margin-bottom:12px;}
+.nb-wrap{display:flex;gap:8px;align-items:stretch;}
+.nb-ylabel{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;font-size:11px;font-weight:700;color:var(--gy);}
+.nb-grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.nb-cell{border-radius:8px;min-height:104px;padding:8px 9px;display:flex;flex-direction:column;gap:5px;}
+.nb-cell h5{margin:0;font-size:11px;font-weight:700;line-height:1.25;}
+.nb-cell h5 small{display:block;font-weight:400;opacity:.75;font-size:9.5px;}
+.nb-chip{background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:4px 7px;font-size:11px;cursor:pointer;line-height:1.25;}
+.nb-chip:hover{box-shadow:0 1px 6px rgba(0,0,0,.2);}
+.nb-chip small{display:block;color:var(--gy);font-size:9.5px;}
+.nb-xlabel{text-align:center;font-size:11px;font-weight:700;color:var(--gy);margin:6px 0 2px;}
+.nb-gap-tbl{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 10px;}
+.nb-gap-tbl th{text-align:left;color:var(--gy);font-weight:600;padding:5px 6px;border-bottom:1px solid var(--mid);}
+.nb-gap-tbl td{padding:5px 6px;border-bottom:1px solid #F0F0F0;}
+.nb-neg{color:#C0392B;font-weight:700;}.nb-pos{color:#1E8449;font-weight:700;}
+@media(max-width:760px){.nb-cell{min-height:80px;padding:6px;}}
 .bench-box{background:#fff;border:1px solid var(--mid);border-radius:10px;padding:16px 18px;margin-bottom:18px;}
 .bench-head{font-size:14px;font-weight:700;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;margin-bottom:12px;}
 .bench-sub{font-size:11px;font-weight:400;color:var(--gy);}
@@ -346,6 +363,18 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
         <div class="bench-legend" id="benchLegend"></div>
         <div class="bench-crit-title">⚠️ ตำแหน่งวิกฤต — High Impact + High Risk <span class="bench-sub">(คลิกแถวเพื่อดูรายละเอียด)</span></div>
         <div id="benchCrit"></div>
+      </div>
+
+      <div class="nb-box" id="nbBox">
+        <div class="bench-head">🎯 9-Box &amp; Gap ของทายาท <span class="bench-sub" id="nbSub"></span></div>
+        <div class="nb-note" id="nbNote" style="display:none"></div>
+        <div class="nb-wrap">
+          <div class="nb-ylabel">Performance (เกรดย้อนหลัง) →</div>
+          <div class="nb-grid" id="nbGrid"></div>
+        </div>
+        <div class="nb-xlabel">Potential (Leadership + Functional Skills) →</div>
+        <div class="bench-crit-title">ทายาทที่ระบุชื่อแล้ว — สถานะข้อมูล <span class="bench-sub">(คลิกแถวเพื่อดู Gap รายข้อ)</span></div>
+        <div id="nbPending"></div>
       </div>
 
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;position:relative;">
@@ -1099,6 +1128,7 @@ async function loadSuccessionData(){
 
     populateFilters();
     refreshSuccessionView();
+    loadTalentData();
   }).catch(ex=>{
     intro.innerHTML=`<span style="color:var(--red)">⚠️ ${ex.message}</span>`;
   });
@@ -1487,6 +1517,7 @@ function refreshSuccessionView(){
   renderMatrix(filtered);
   renderLegend(filtered);
   renderBench(filtered);
+  renderNineBox(filtered);
   renderSuccTable();
 }
 
@@ -1649,6 +1680,145 @@ function scoreRow(label, val, meaningMap, highlightColor){
     <div class="sp-score-top"><span class="sp-score-label">${label}</span><span class="sp-score-val" style="color:${highlightColor||'var(--red)'}">${val} / 5</span></div>
     ${meaning?`<div class="sp-score-meaning">${meaning}</div>`:''}
   </div>`;
+}
+
+// ═════════ 9-Box & Gap ═════════
+// ข้อมูลเสริม (ไม่บังคับ): profile_requirements.xlsx = ระดับที่ตำแหน่งต้องการจาก Success Profile
+//                         talent_assessment.xlsx = ผลประเมิน Potential รายคน (Functional Skills / Leadership)
+let REQ={}, ASSESS=[], NB_PAIRS=[];
+const PERF_CUT=[2.5,3.5];   // เกรดเฉลี่ย <2.5 = Low, 2.5–<3.5 = Medium, >=3.5 = High
+const POT_CUT=[3,4];        // ดัชนี Potential (1–5) <3 = Low, 3–<4 = Medium, >=4 = High
+async function loadTalentData(){
+  async function rd(url){
+    try{
+      const r=await fetch(url+'?v='+Date.now()); if(!r.ok) return null;
+      const wb=XLSX.read(await r.arrayBuffer(),{type:'array'});
+      return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+    }catch(e){ return null; }
+  }
+  const rq=await rd('profile_requirements.xlsx');
+  REQ={};
+  (rq||[]).forEach(r=>{
+    const pid=sv(r.position_emp_id), it=sv(r.item); if(!pid||!it) return;
+    const t=sv(r.type).toUpperCase()==='LEAD'?'LEAD':'FUNC';
+    (REQ[pid]=REQ[pid]||{LEAD:[],FUNC:[]})[t].push({item:it,level:Number(r.required_level)});
+  });
+  const as=await rd('talent_assessment.xlsx');
+  ASSESS=(as||[]).filter(r=>sv(r.successor_emp_id)&&sv(r.item)&&sv(r.level)!=='').map(r=>({
+    sid:sv(r.successor_emp_id), pid:sv(r.position_emp_id),
+    type:sv(r.type).toUpperCase()==='LEAD'?'LEAD':'FUNC', item:sv(r.item), level:Number(r.level), year:sv(r.year)}));
+  refreshSuccessionView();
+}
+function nbNorm(t){ return String(t||'').replace(/\s+/g,' ').trim(); }
+function perfOf(sid){
+  const e=em[sid]; if(!e) return null;
+  const list=[e.g68,e.g67,e.g66];
+  const g=list.map(v=>parseFloat(v)).filter(v=>!isNaN(v));
+  if(!g.length) return null;
+  return {avg:g.reduce((a,b)=>a+b,0)/g.length, list};
+}
+function potOf(sid,pid){
+  const items=ASSESS.filter(a=>a.sid===sid&&a.pid===pid);
+  if(!items.length) return null;
+  const req=REQ[pid]||{LEAD:[],FUNC:[]};
+  const rows=items.map(a=>{
+    const r=(req[a.type]||[]).find(q=>nbNorm(q.item)===nbNorm(a.item));
+    return {type:a.type,item:a.item,level:a.level,req:r?r.level:null,gap:r?a.level-r.level:null};
+  });
+  const comp=t=>{const v=rows.filter(r=>r.type===t); return v.length?v.reduce((s,r)=>s+r.level,0)/v.length:null;};
+  const f=comp('FUNC'), l=comp('LEAD');
+  const parts=[f,l].filter(v=>v!==null);
+  const idx=parts.reduce((a,b)=>a+b,0)/parts.length;
+  const wr=rows.filter(r=>r.gap!==null);
+  const avgGap=wr.length?wr.reduce((s,r)=>s+r.gap,0)/wr.length:null;
+  const total=(req.FUNC||[]).length+(req.LEAD||[]).length;
+  let sug=null;
+  if(wr.length){
+    if(wr.every(r=>r.gap>=0)) sug='now';
+    else if(avgGap>=-0.75 && wr.every(r=>r.gap>-2)) sug='1y';
+    else sug='3y';
+  }
+  return {rows,idx,f,l,avgGap,sug,assessed:wr.length,total,complete:total>0&&wr.length>=total};
+}
+const NB_LBL={now:'พร้อมทันที','1y':'พร้อม 1-2 ปี','3y':'พร้อม 3-5 ปี'};
+const NB_CELL=[ // [perfBand 2..0][potBand 0..2]
+  [['Solid Professional','ผลงานดี ศักยภาพจำกัด','#E8F1FB'],['High Performer','ผลงานดี ศักยภาพปานกลาง','#D5EAD8'],['Star','ผลงานดีและศักยภาพสูง','#BFE3C5']],
+  [['Effective','ผลงานปานกลาง ศักยภาพจำกัด','#F1F1F1'],['Core Player','ผลงานและศักยภาพปานกลาง','#E8F1FB'],['High Potential','ศักยภาพสูง ผลงานปานกลาง','#D5EAD8']],
+  [['Underperformer','ต้องปรับปรุงทั้งสองด้าน','#F6D5D2'],['Inconsistent','ผลงานต่ำ ศักยภาพปานกลาง','#FBE5CF'],['Enigma','ศักยภาพสูง ผลงานยังไม่ถึง','#FFF2CC']],
+];
+function renderNineBox(filtered){
+  const grid=document.getElementById('nbGrid'); if(!grid) return;
+  const byName={}; emps.forEach(e=>{ if(e.nth) byName[nbNorm(e.nth)]=e.id; });
+  NB_PAIRS=[];
+  filtered.filter(d=>d.hasScore).forEach(d=>{
+    (d.succList||[]).forEach(x=>{
+      if(x.k==='ext'||x.k==='none') return;
+      const sid=x.eid||byName[nbNorm(x.name)]||'';
+      NB_PAIRS.push({d,x,sid,perf:sid?perfOf(sid):null,pot:sid?potOf(sid,d.eid):null});
+    });
+  });
+  const placed=NB_PAIRS.filter(p=>p.perf&&p.pot), pend=NB_PAIRS.filter(p=>!(p.perf&&p.pot));
+  document.getElementById('nbSub').textContent='ทายาทภายในที่ระบุชื่อ '+NB_PAIRS.length+' คน — วางใน 9-Box ได้ '+placed.length+' คน (ต้องมีทั้งเกรดและผลประเมิน Potential)';
+  const note=document.getElementById('nbNote');
+  if(!ASSESS.length){
+    note.style.display='';
+    note.innerHTML='ยังไม่มีข้อมูลผลประเมิน Potential (Functional Skills / Leadership) จึงยังวางใน 9-Box ไม่ได้ — ตารางด้านล่างแสดงเกรดที่มี และเกณฑ์ที่แต่ละตำแหน่งต้องการ เมื่อหัวหน้างานประเมินครบ ทายาทจะปรากฏในตาราง 9 ช่องอัตโนมัติ';
+  }else note.style.display='none';
+  // grid
+  let html='';
+  for(let pr=2;pr>=0;pr--){
+    for(let pt=0;pt<3;pt++){
+      const c=NB_CELL[2-pr][pt];
+      const here=placed.filter(p=>perfBand(p.perf.avg)===pr&&potBand(p.pot.idx)===pt);
+      html+=`<div class="nb-cell" style="background:${c[2]}"><h5>${c[0]}<small>${c[1]}</small></h5>`+
+        here.map(p=>`<div class="nb-chip" onclick="showGapDetail(${NB_PAIRS.indexOf(p)})">${p.x.name}<small>→ ${p.d.pos}</small></div>`).join('')+`</div>`;
+    }
+  }
+  grid.innerHTML=html;
+  // pending / status table
+  const el=document.getElementById('nbPending');
+  if(!NB_PAIRS.length){ el.innerHTML='<div class="sp-empty">ยังไม่มีทายาทภายในที่ระบุชื่อตามตัวกรองปัจจุบัน</div>'; return; }
+  const g=v=>(v===undefined||v===''||v==='n/a')?'—':v;
+  el.innerHTML=`<table class="bench-crit"><thead><tr><th>ทายาท</th><th>ตำแหน่งที่จะสืบทอด</th><th>ความพร้อมที่เสนอ</th><th>เกรด 68/67/66</th><th>เกณฑ์ที่ต้องประเมิน</th><th>ผลประเมิน</th><th>ข้อเสนอจาก Gap</th></tr></thead><tbody>`+
+    NB_PAIRS.map((p,i)=>{
+      const rq=REQ[p.d.eid]; const nreq=rq?(rq.FUNC.length+rq.LEAD.length):0;
+      const e=em[p.sid];
+      const gr=e?[e.g68,e.g67,e.g66].map(g).join(' / '):'—';
+      const st=!p.sid?'ไม่พบรหัสพนักงานของทายาท':(p.pot?`ประเมินแล้ว ${p.pot.assessed}/${p.pot.total||'?'} ข้อ`:'ยังไม่ได้ประเมิน');
+      const sug=p.pot&&p.pot.sug?`<b>${NB_LBL[p.pot.sug]}</b>${p.pot.complete?'':' <small style="color:#856404">(ประเมินยังไม่ครบ)</small>'}`:'—';
+      return `<tr class="bcr" data-i="${i}"><td><b>${p.x.name}</b></td><td>${p.d.pos}</td><td>${p.x.ready||'—'}</td><td>${gr}</td><td>${nreq?nreq+' ข้อ':'<span style="color:#C0392B">Profile ยังไม่ระบุ</span>'}</td><td>${st}</td><td>${sug}</td></tr>`;
+    }).join('')+`</tbody></table>`;
+  el.querySelectorAll('tr.bcr').forEach(tr=>{ tr.onclick=()=>showGapDetail(+tr.dataset.i); });
+}
+function perfBand(a){ return a<PERF_CUT[0]?0:(a<PERF_CUT[1]?1:2); }
+function potBand(a){ return a<POT_CUT[0]?0:(a<POT_CUT[1]?1:2); }
+function showGapDetail(i){
+  const p=NB_PAIRS[i]; if(!p) return;
+  const e=em[p.sid]||{};
+  document.getElementById('succPav').textContent=ai({nth:p.x.name,nk:''});
+  document.getElementById('succPnm').textContent=p.x.name;
+  document.getElementById('succPne').textContent=e.lv||'';
+  document.getElementById('succPps').textContent=(e.pos?e.pos+'  →  ':'')+'ทายาทของ '+p.d.pos;
+  let h=`<div class="ir"><span class="il">ผู้ดำรงตำแหน่งปัจจุบัน</span><span class="iv">${p.d.name}</span></div>`;
+  h+=`<div class="ir"><span class="il">ความพร้อมที่เสนอ (ผู้เสนอชื่อ)</span><span class="iv">${p.x.ready||'—'}</span></div>`;
+  if(p.perf){
+    h+=`<div class="ir"><span class="il">Performance</span><span class="iv">เฉลี่ย ${p.perf.avg.toFixed(1)} (2568: ${p.perf.list[0]||'—'} · 2567: ${p.perf.list[1]||'—'} · 2566: ${p.perf.list[2]||'—'})</span></div>`;
+  }else h+=`<div class="ir"><span class="il">Performance</span><span class="iv" style="color:#C0392B">ไม่มีเกรด</span></div>`;
+  const req=REQ[p.d.eid];
+  if(p.pot){
+    h+=`<div class="ir"><span class="il">Potential (ดัชนี 1–5)</span><span class="iv">${p.pot.idx.toFixed(2)} ${p.pot.f!==null?'· Functional '+p.pot.f.toFixed(1):''} ${p.pot.l!==null?'· Leadership '+p.pot.l.toFixed(1):''}</span></div>`;
+    h+=`<div class="ir"><span class="il">ข้อเสนอจาก Gap</span><span class="iv">${p.pot.sug?NB_LBL[p.pot.sug]+(p.pot.complete?'':' (ประเมินยังไม่ครบ '+p.pot.assessed+'/'+p.pot.total+' ข้อ)'):'—'}</span></div>`;
+    h+=`<table class="nb-gap-tbl"><thead><tr><th>หัวข้อ</th><th>ต้องการ</th><th>ประเมิน</th><th>Gap</th></tr></thead><tbody>`+
+      p.pot.rows.map(r=>`<tr><td>${r.type==='LEAD'?'🧭 ':'🛠 '}${r.item}</td><td>${r.req??'—'}</td><td>${r.level}</td><td class="${r.gap===null?'':(r.gap<0?'nb-neg':'nb-pos')}">${r.gap===null?'—':(r.gap>0?'+':'')+r.gap}</td></tr>`).join('')+`</tbody></table>`;
+  }else if(req){
+    h+=`<div class="ir"><span class="il">Potential</span><span class="iv" style="color:#856404">ยังไม่ได้ประเมิน</span></div>`;
+    h+=`<div style="font-size:11px;color:var(--gy);margin:8px 0 4px">เกณฑ์ที่ตำแหน่งนี้ต้องการ (จาก Success Profile)</div><table class="nb-gap-tbl"><thead><tr><th>หัวข้อ</th><th>ระดับที่ต้องการ</th></tr></thead><tbody>`+
+      req.FUNC.map(r=>`<tr><td>🛠 ${r.item}</td><td>${r.level}</td></tr>`).join('')+req.LEAD.map(r=>`<tr><td>🧭 ${r.item}</td><td>${r.level}</td></tr>`).join('')+`</tbody></table>`;
+  }else{
+    h+=`<div class="ir"><span class="il">เกณฑ์ตำแหน่ง</span><span class="iv" style="color:#C0392B">Success Profile ของตำแหน่งนี้ยังไม่ระบุระดับที่ต้องการ</span></div>`;
+  }
+  document.getElementById('succBody').innerHTML=h;
+  document.getElementById('succOv').classList.add('on');
 }
 
 // เปิดไฟล์ Profile: ลองหาใน profiles/ ก่อน ถ้าไม่เจอลองหน้าหลัก (root) — รองรับทั้งสองที่
