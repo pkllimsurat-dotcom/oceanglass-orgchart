@@ -1114,7 +1114,7 @@ async function loadSuccessionData(){
     {
       const seen={}, uniq=[];
       succData.forEach(d=>{
-        if(d.succName||d.succReady) (legacySucc[d.eid]=legacySucc[d.eid]||[]).push({eid:'',name:d.succName,ready:d.succReady,notes:d.notes});
+        if(d.succName) (legacySucc[d.eid]=legacySucc[d.eid]||[]).push({eid:'',name:d.succName,ready:d.succReady,notes:d.notes});
         if(seen[d.eid]){ if(!seen[d.eid].succFile&&d.succFile) seen[d.eid].succFile=d.succFile; return; }
         seen[d.eid]=d; uniq.push(d);
       });
