@@ -137,7 +137,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .matrix-dot-label{position:absolute;font-size:9.5px;color:var(--blk);white-space:nowrap;pointer-events:none;background:rgba(255,255,255,.9);padding:0 3px;border-radius:2px;font-weight:500;}
 
 /* Legend: symmetric 4-column grid */
-.sp-legend-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.sp-legend-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:18px;}
 .sp-legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--blk);padding:10px 12px;border-radius:6px;background:var(--lg);min-height:64px;}
 .sp-legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
 .sp-legend-text{flex:1;}
@@ -615,7 +615,7 @@ async function init(){
         photo:sv(r.photo_filename), bd, sd,
         age:bd?decY(bd):null, ten:sd?decY(sd):null,
         ex1:sv(r.extra_1),
-        pa:sv(r.last_pa_date), sa:sv(r.last_sa_date),
+        pa:dStr(r.last_pa_date), sa:dStr(r.last_sa_date),
         pp:sv(r.pay_point_pct),
         g68:sv(r.grade_2568), g67:sv(r.grade_2567), g66:sv(r.grade_2566),
       });
@@ -668,32 +668,40 @@ function sv(x){
   const s=String(x).trim();
   return(s==='nan'||s==='NaT'||s==='<NA>')?'':s;
 }
+// อ่านวันที่ได้หลายรูปแบบ: เซลล์วันที่จริงของ Excel (ไม่ขึ้นกับรูปแบบการแสดงผล) หรือข้อความ
+// วว/ดด/ปปปป (ค.ศ. หรือ พ.ศ.), วว-ดด-ปปปป, ปปปป-ดด-วว  — ข้อความที่มีเครื่องหมายคั่นถือเป็น "วัน/เดือน/ปี" เสมอ
+function dStr(v){ // เก็บวันที่เป็นข้อความ วว/ดด/ปปปป (รองรับทั้งเซลล์วันที่จริงและข้อความ)
+  if(v instanceof Date){const d=pdate(v); return d?`${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`:'';}
+  return sv(v);
+}
 function pdate(v){
-  if(!v)return null;
+  if(v===null||v===undefined||v==='')return null;
   if(v instanceof Date){
     if(isNaN(v))return null;
     // ปัดเศษเวลาที่คลาดเคลื่อนจาก floating-point ของ Excel serial date
-    // (บาง cell มีวินาทีเพี้ยนเล็กน้อย เช่น 23:59:56 แทนที่จะเป็นเที่ยงคืนพอดี
-    //  ทำให้คำนวณวันผิดไป 1 วัน) — ปัดให้ตรงวันที่ถูกต้องเสมอ
     const rounded=Math.round(v.getTime()/86400000)*86400000;
     return new Date(rounded);
   }
-  const s=sv(v); if(!s||s==='-')return null;
-  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if(m)return new Date(+m[3],+m[2]-1,+m[1]);
-  const d=new Date(s); return isNaN(d)?null:d;
+  const s=sv(v); if(!s||s==='-'||s==='n/a')return null;
+  let d,mo,y,m;
+  if(m=s.match(/^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})$/)){y=+m[1];mo=+m[2];d=+m[3];}
+  else if(m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/)){d=+m[1];mo=+m[2];y=+m[3];}
+  else if(m=s.match(/^(\d{1,2})[\/.\-](\d{2})(\d{4})$/)){d=+m[1];mo=+m[2];y=+m[3];} // พิมพ์ตกเครื่องหมาย เช่น 18/052026
+  else return null;
+  if(y>2400)y-=543; // พ.ศ. → ค.ศ.
+  if(y<1900||y>2100||mo<1||mo>12||d<1||d>31)return null;
+  const dt=new Date(Date.UTC(y,mo-1,d,12));
+  if(dt.getUTCMonth()!==mo-1)return null; // วันที่ไม่มีจริง เช่น 31/02
+  return new Date(Date.UTC(y,mo-1,d)); // วันที่ตามเที่ยงคืน UTC เหมือนค่าจากเซลล์วันที่
 }
 function decY(from){return(new Date()-from)/(365.25*24*3600*1000);}
 function fa(n){return n!==null?n.toFixed(2)+' ปี':'—';}
 function ft(n){return n===null?'—':n.toFixed(2)+' ปี';}
 function fdt(s){
   if(!s||s==='-'||s==='—'||s==='n/a')return'—';
-  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if(m){
-    const yy=+m[3]+543;
-    return `${m[1].padStart(2,'0')} ${TH_MON[+m[2]-1]} ${yy}`;
-  }
-  return s;
+  const d=pdate(s);
+  if(d) return `${String(d.getUTCDate()).padStart(2,'0')} ${TH_MON[d.getUTCMonth()]} ${d.getUTCFullYear()+543}`;
+  return s; // อ่านไม่ออก แสดงตามที่กรอก
 }
 
 // ── Photo: try multiple paths + extensions without flicker ────────────────
@@ -1101,6 +1109,17 @@ async function loadSuccessionData(){
       division: sv(r['สายงาน']) || computeDivision(sv(r.emp_id)),
       hasScore: true,
     }));
+    // ตำแหน่งเดียวกันที่มีหลายแถวใน 'กรอกข้อมูล' (เช่น ทายาท 2 คน แยกเป็น 2 บรรทัด) → รวมเป็นตำแหน่งเดียว เก็บทายาททุกคน
+    const legacySucc={};
+    {
+      const seen={}, uniq=[];
+      succData.forEach(d=>{
+        if(d.succName||d.succReady) (legacySucc[d.eid]=legacySucc[d.eid]||[]).push({eid:'',name:d.succName,ready:d.succReady,notes:d.notes});
+        if(seen[d.eid]){ if(!seen[d.eid].succFile&&d.succFile) seen[d.eid].succFile=d.succFile; return; }
+        seen[d.eid]=d; uniq.push(d);
+      });
+      succData=uniq;
+    }
     // employees.xlsx เป็นตัวหลักของรายชื่อ Key Position: แถวใน succession.xlsx ที่ไม่ได้เป็น KP ในไฟล์พนักงาน
     // (เช่น ลาออกแล้ว หรือถูกเอาธง KP ออก) จะไม่แสดง
     {
@@ -1131,7 +1150,7 @@ async function loadSuccessionData(){
     const missingMsg=missingCount>0
       ?` <span style="color:#E67E22;font-weight:600;">⚠️ มี ${missingCount} ตำแหน่งใหม่ที่ยังไม่ได้กรอกคะแนน (ดูแถวสีเหลืองในตาราง)</span>`
       :'';
-    intro.innerHTML=`พบตำแหน่ง Key Position ทั้งหมด <b>${succData.length}</b> ตำแหน่ง — คลิกที่จุดในกราฟหรือแถวในตารางเพื่อดูรายละเอียด${missingMsg}`;
+    succIntroMissing=missingMsg;
     // ── ชีต "ทายาท" (ไม่บังคับ): 1 แถว = ทายาท 1 คน ของตำแหน่งหนึ่ง → ตำแหน่งเดียวมีทายาทได้หลายคน ──
     // ถ้าตำแหน่งนั้นมีแถวในชีตนี้ จะใช้ข้อมูลจากชีตนี้แทนคอลัมน์ successor_* ในชีตหลัก
     const sheetMap={};
@@ -1150,14 +1169,14 @@ async function loadSuccessionData(){
     succData.forEach(d=>{
       let list=sheetMap[d.eid];
       if(!list||!list.length){
-        list=d.succName?[{eid:'',name:d.succName,ready:d.succReady,notes:''}]:[];
+        list=(legacySucc[d.eid]||[]).map(x=>({...x}));
       }
       list.forEach(x=>{ x.k=(/สรรหาจากภายนอก/.test(x.name+' '+x.ready))?'ext':(x.ready?readyKey(x.ready):'none'); });
       d.succList=list;
       if(!list.length){ d.sk='none'; return; }
       const best=list.slice().sort((a,b)=>RANK[a.k]-RANK[b.k])[0];
       d.sk=best.k;
-      if(sheetMap[d.eid]&&sheetMap[d.eid].length){
+      if((sheetMap[d.eid]&&sheetMap[d.eid].length)||list.length>1){
         const internal=list.filter(x=>x.k!=='ext');
         d.succName=internal.length?internal.map(x=>x.name).join(', '):'สรรหาจากภายนอก';
         d.succReady=best.ready||'';
@@ -1380,6 +1399,15 @@ function renderLegend(data){
       <div class="sp-legend-text"><b>${q}</b><br><span class="sp-legend-action">${QUAD_ACTION[q]} (${count} ตำแหน่ง)</span></div>`;
     lg.appendChild(item);
   });
+  [[QX_EXEMPT,'ไม่อยู่ในขอบเขตการประเมิน','#9E9E9E','ไม่มีจุดในกราฟ',true],[QX_NOSCORE,'ยังไม่กรอกคะแนน','#E67E22','ต้องกรอกคะแนนใน succession.xlsx',false]].forEach(([k,lb,col,act,always])=>{
+    const count=data.filter(d=>quadKeyOf(d)===k).length;
+    if(!count&&!(always&&succData.some(d=>quadKeyOf(d)===k))) return;
+    const item=document.createElement('div');
+    item.className='sp-legend-item';
+    item.innerHTML=`<div class="sp-legend-dot" style="background:${col}"></div>
+      <div class="sp-legend-text"><b>${lb}</b><br><span class="sp-legend-action">${act} (${count} ตำแหน่ง)</span></div>`;
+    lg.appendChild(item);
+  });
 }
 
 function toggleTable(){
@@ -1456,7 +1484,9 @@ function populateFilters(){
   if(divs.includes(prevVal)) gdivSel.value=prevVal; // คงค่าที่เลือกไว้ถ้ายังมีอยู่
 
   buildMsel('quad','msQuad','ทุก Quadrant',
-    Object.keys(QUAD_COLOR).map(q=>({value:q,label:q,color:QUAD_COLOR[q]})),
+    Object.keys(QUAD_COLOR).map(q=>({value:q,label:q,color:QUAD_COLOR[q]})).concat([
+      {value:QX_EXEMPT,label:'ไม่อยู่ในขอบเขตการประเมิน',color:'#9E9E9E'},
+      {value:QX_NOSCORE,label:'ยังไม่กรอกคะแนน',color:'#E67E22'}]),
     [{label:'เลือกเฉพาะ High Impact (2 กลุ่ม)',values:['High Impact + High Risk','High Impact + Low Risk']}]);
   buildMsel('ready','msReady','ทุกสถานะ Successor',[
     {value:'now',label:'พร้อมทันที',color:'#27AE60'},
@@ -1535,6 +1565,8 @@ function readyKey(v){
 
 // ── ตัวกรองรวม: ค้นหา + สายงาน + Quadrant + สถานะ Successor ──────────────
 // ใช้ร่วมกันทั้งกราฟ, legend, และตาราง เพื่อให้ผลลัพธ์ตรงกันเสมอ
+const QX_EXEMPT='__exempt', QX_NOSCORE='__noscore';
+function quadKeyOf(d){ return d.quadrant||(d.exempt?QX_EXEMPT:QX_NOSCORE); }
 function getFilteredSuccData(){
   const q=(document.getElementById('spSearchInput')?.value||'').trim().toLowerCase();
   activeSuccDiv=document.getElementById('spGlobalDivFilter')?.value||'';
@@ -1543,15 +1575,21 @@ function getFilteredSuccData(){
   return succData.filter(d=>{
     if(activeSuccDiv && d.division!==activeSuccDiv) return false;
     if(q && !(d.name.toLowerCase().includes(q)||d.pos.toLowerCase().includes(q))) return false;
-    if(quadF.size && !quadF.has(d.quadrant)) return false;
+    if(quadF.size && !quadF.has(quadKeyOf(d))) return false;
     if(readyF.size && !readyF.has(succKey(d))) return false;
     return true;
   });
 }
 
 // ── เรียกทุกครั้งที่เปลี่ยนตัวกรองใดๆ — อัปเดตกราฟ+legend+ตารางพร้อมกันทันที ──
+let succIntroMissing='';
 function refreshSuccessionView(){
   const filtered=getFilteredSuccData();
+  const intro=document.getElementById('succIntro');
+  if(intro&&succData.length){
+    const cnt=filtered.length===succData.length?`พบตำแหน่ง Key Position ทั้งหมด <b>${succData.length}</b> ตำแหน่ง`:`แสดง <b>${filtered.length}</b> จาก ${succData.length} ตำแหน่ง Key Position`;
+    intro.innerHTML=`${cnt} — คลิกที่จุดในกราฟหรือแถวในตารางเพื่อดูรายละเอียด${succIntroMissing}`;
+  }
   renderMatrix(filtered);
   renderLegend(filtered);
   renderBench(filtered);
@@ -1922,6 +1960,20 @@ function closeSuccDetail(){
 
 
 init();
+</script>
+<button id="toTop" type="button" title="กลับขึ้นด้านบน" aria-label="กลับขึ้นด้านบน">▲</button>
+<style>
+#toTop{position:fixed;right:20px;bottom:24px;width:44px;height:44px;border-radius:50%;border:none;background:var(--red);color:#fff;font-size:16px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:900;}
+#toTop.show{opacity:.92;pointer-events:auto;}
+#toTop:hover{opacity:1;transform:translateY(-2px);}
+</style>
+<script>
+(function(){
+  const b=document.getElementById('toTop');
+  function upd(){ b.classList.toggle('show',(window.scrollY||document.documentElement.scrollTop)>300); }
+  window.addEventListener('scroll',upd,{passive:true}); upd();
+  b.addEventListener('click',()=>{ window.scrollTo({top:0,behavior:'smooth'}); });
+})();
 </script>
 </body>
 </html>
