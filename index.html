@@ -246,6 +246,24 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .bench-crit td{padding:7px 8px;border-bottom:1px solid #F0F0F0;}
 .bench-crit tr.bcr{cursor:pointer;}
 .bench-crit tr.bcr:hover{background:var(--lg);}
+.bench-seg{cursor:pointer;transition:filter .15s;}
+.bench-seg:hover{filter:brightness(1.12);outline:2px solid rgba(0,0,0,.25);outline-offset:-2px;}
+.bench-tile.clk{cursor:pointer;}
+.bench-tile.clk:hover{box-shadow:0 0 0 2px var(--red) inset;}
+.bc-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;}
+.bc-filters select{padding:6px 10px;border:1px solid var(--mid);border-radius:8px;font-size:12px;background:#fff;font-family:inherit;}
+.bc-filters .bc-count{font-size:12px;color:var(--gy);margin-left:auto;}
+.rdy-chip{display:inline-block;border-radius:10px;padding:2px 9px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;}
+.bc-box{background:#fff;border-radius:14px;width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.25);}
+.bc-head{padding:16px 20px 10px;border-bottom:1px solid var(--mid);display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+.bc-head h4{margin:0;font-size:15px;}
+.bc-head small{color:var(--gy);font-size:11px;}
+.bc-x{border:none;background:var(--lg);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;flex:none;}
+.bc-list{overflow:auto;padding:6px 8px 12px;}
+.bc-item{padding:10px 12px;border-bottom:1px solid #F0F0F0;cursor:pointer;border-radius:8px;}
+.bc-item:hover{background:var(--lg);}
+.bc-item b{font-size:13px;display:block;}
+.bc-item span{font-size:11.5px;color:var(--gy);display:block;margin-top:2px;}
 .bench-warn{color:#C0392B;font-weight:700;font-size:11px;}
 .bench-ok{color:#1E8449;font-weight:700;font-size:11px;}
 @media(max-width:760px){.bench-tiles{grid-template-columns:repeat(2,1fr);}.bench-row{grid-template-columns:90px 1fr 54px;}}
@@ -366,7 +384,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
         <div class="bench-tiles" id="benchTiles"></div>
         <div id="benchBars"></div>
         <div class="bench-legend" id="benchLegend"></div>
-        <div class="bench-crit-title">⚠️ ตำแหน่งวิกฤต — High Impact + High Risk <span class="bench-sub">(คลิกแถวเพื่อดูรายละเอียด)</span></div>
+        <div class="bench-crit-title">⚠️ ตำแหน่งสำคัญ — High Impact (High Risk + Low Risk) <span class="bench-sub">(คลิกแถวเพื่อดูรายละเอียด · เรียงตำแหน่งที่ยังไม่มีทายาทไว้บนสุด)</span></div>
+        <div class="bc-filters">
+          <select id="bcDiv" onchange="renderCrit()"><option value="">ทุกสายงาน</option></select>
+          <select id="bcReady" onchange="renderCrit()">
+            <option value="">ทุกระดับความพร้อม</option>
+            <option value="gap">ยังไม่มีทายาท (สรรหาภายนอก + ไม่ระบุ)</option>
+            <option value="ext">สรรหาจากภายนอก</option>
+            <option value="none">ยังไม่ระบุผู้สืบทอด</option>
+            <option value="now">พร้อมทันที</option>
+            <option value="1y">พร้อม 1-2 ปี</option>
+            <option value="3y">พร้อม 3-5 ปี</option>
+          </select>
+          <span class="bc-count" id="bcCount"></span>
+        </div>
         <div id="benchCrit"></div>
       </div>
 
@@ -451,6 +482,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 
 
 <!-- SUCCESSION DETAIL POPUP (separate overlay) -->
+<div class="ov" id="bcOv" onclick="if(event.target===this)closeBenchList()">
+  <div class="bc-box">
+    <div class="bc-head"><div><h4 id="bcTitle"></h4><small id="bcSubT"></small></div><button class="bc-x" onclick="closeBenchList()">✕</button></div>
+    <div class="bc-list" id="bcList"></div>
+  </div>
+</div>
 <div class="ov" id="succOv" onclick="if(event.target===this)closeSuccDetail()">
   <div class="sp-detail-pop">
     <div class="ph">
@@ -1623,34 +1660,74 @@ function renderBench(filtered){
   data.forEach(d=>cnt[succKey(d)]++);
   const n=data.length||1, pct=x=>Math.round(x*100/n);
   document.getElementById('benchTiles').innerHTML=[
-    ['ตำแหน่งทั้งหมด',data.length,'#222'],
-    ['ทายาทพร้อมภายใน 2 ปี',cnt.now+cnt['1y']+' ('+pct(cnt.now+cnt['1y'])+'%)','#1E8449'],
-    ['มีทายาท แต่ต้องพัฒนา 3-5 ปี',cnt['3y']+' ('+pct(cnt['3y'])+'%)','#E6A100'],
-    ['ต้องสรรหาจากภายนอก',cnt.ext+' ('+pct(cnt.ext)+'%)','#7B61A8'],
-    ['ยังไม่ระบุผู้สืบทอด',cnt.none+' ('+pct(cnt.none)+'%)','#888'],
-  ].map(t=>`<div class="bench-tile"><b style="color:${t[2]}">${t[1]}</b><span>${t[0]}</span></div>`).join('');
+    ['ตำแหน่งทั้งหมด',data.length,'#222',''],
+    ['ทายาทพร้อมภายใน 2 ปี',cnt.now+cnt['1y']+' ('+pct(cnt.now+cnt['1y'])+'%)','#1E8449','ready2'],
+    ['มีทายาท แต่ต้องพัฒนา 3-5 ปี',cnt['3y']+' ('+pct(cnt['3y'])+'%)','#E6A100','3y'],
+    ['ต้องสรรหาจากภายนอก',cnt.ext+' ('+pct(cnt.ext)+'%)','#7B61A8','ext'],
+    ['ยังไม่ระบุผู้สืบทอด',cnt.none+' ('+pct(cnt.none)+'%)','#888','none'],
+  ].map(t=>`<div class="bench-tile${t[3]?' clk':''}" ${t[3]?`data-k="${t[3]}" title="คลิกเพื่อดูรายชื่อตำแหน่ง"`:''}><b style="color:${t[2]}">${t[1]}</b><span>${t[0]}</span></div>`).join('');
   // แยกตามสายงาน
   const divs=[...new Set(data.map(d=>d.division||'—'))].sort();
   document.getElementById('benchBars').innerHTML=divs.map(dv=>{
     const rows=data.filter(d=>(d.division||'—')===dv);
     const c={now:0,'1y':0,'3y':0,ext:0,none:0};
     rows.forEach(d=>c[succKey(d)]++);
-    const segs=BENCH_CAT.filter(x=>c[x.k]).map(x=>`<div class="bench-seg" style="width:${c[x.k]*100/rows.length}%;background:${x.color}" title="${x.label}: ${c[x.k]}">${c[x.k]}</div>`).join('');
+    const segs=BENCH_CAT.filter(x=>c[x.k]).map(x=>{
+      const tip=x.label+': '+c[x.k]+' ตำแหน่ง (คลิกเพื่อดูรายชื่อ)\n'+rows.filter(d=>succKey(d)===x.k).map(d=>'• '+d.pos).join('\n');
+      return `<div class="bench-seg" data-dv="${dv.replace(/"/g,'&quot;')}" data-k="${x.k}" style="width:${c[x.k]*100/rows.length}%;background:${x.color}" title="${tip.replace(/"/g,'&quot;')}">${c[x.k]}</div>`;
+    }).join('');
     return `<div class="bench-row"><div><b>${dv}</b></div><div class="bench-bar">${segs}</div><div style="text-align:right;color:var(--gy)">${rows.length} ตำแหน่ง</div></div>`;
   }).join('')||'<div class="sp-empty">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</div>';
+  BENCH_DATA=data;
+  document.querySelectorAll('#benchBars .bench-seg').forEach(sg=>{ sg.onclick=()=>openBenchList(sg.dataset.dv,sg.dataset.k); });
+  document.querySelectorAll('#benchTiles .bench-tile.clk').forEach(t=>{ t.onclick=()=>openBenchList('',t.dataset.k); });
   document.getElementById('benchLegend').innerHTML=BENCH_CAT.map(x=>`<span><i style="background:${x.color}"></i>${x.label}</span>`).join('');
-  // ตำแหน่งวิกฤต: High Impact + High Risk
-  const crit=data.filter(d=>d.quadrant==='High Impact + High Risk').sort((a,b)=>(b.riskScore||0)-(a.riskScore||0));
-  const el=document.getElementById('benchCrit');
-  if(!crit.length){ el.innerHTML='<div class="sp-empty">ไม่มีตำแหน่งในกลุ่ม High Impact + High Risk ตามตัวกรองปัจจุบัน</div>'; return; }
-  const lbl={now:'พร้อมทันที','1y':'พร้อม 1-2 ปี','3y':'พร้อม 3-5 ปี',ext:'สรรหาจากภายนอก',none:'ยังไม่ระบุ'};
-  el.innerHTML=`<table class="bench-crit"><thead><tr><th>ตำแหน่ง</th><th>ผู้ดำรงตำแหน่ง</th><th>สายงาน</th><th>Risk</th><th>ทายาท</th><th>ความพร้อม</th><th>สถานะ</th></tr></thead><tbody>`+
-    crit.map((d,i)=>{
-      const k=succKey(d), ok=(k==='now'||k==='1y');
-      const names=(d.succList||[]).filter(x=>x.k!=='ext').map(x=>x.name).join(', ')||(k==='ext'?'สรรหาจากภายนอก':'—');
-      return `<tr class="bcr" data-i="${i}"><td>${d.pos}</td><td>${d.name}</td><td>${d.division||'—'}</td><td>${d.riskScore??'—'}</td><td>${names}</td><td>${lbl[k]}</td><td>${ok?'<span class="bench-ok">✓ มีทายาทพร้อมใน 2 ปี</span>':'<span class="bench-warn">⚠ ยังไม่มีทายาทพร้อมใน 2 ปี</span>'}</td></tr>`;
+  renderCrit();
+}
+
+// ── รายชื่อตำแหน่งตามช่องในแท่งกราฟ / ช่องสรุป ──
+let BENCH_DATA=[];
+const RDY_LBL={now:'พร้อมทันที','1y':'พร้อม 1-2 ปี','3y':'พร้อม 3-5 ปี',ext:'สรรหาจากภายนอก',none:'ยังไม่ระบุผู้สืบทอด'};
+const RDY_COL={now:'#1E8449','1y':'#7DBE3C','3y':'#E6A100',ext:'#7B61A8',none:'#999'};
+function succNamesOf(d){
+  const k=succKey(d);
+  const named=(d.succList||[]).filter(x=>x.k!=='ext'&&x.k!=='none'&&x.name);
+  if(named.length) return named.map(x=>x.name+(x.ready?' ('+x.ready+')':'')).join(', ');
+  return k==='ext'?'สรรหาจากภายนอก':'—';
+}
+function openBenchList(div,k){
+  const rows=BENCH_DATA.filter(d=>(!div||(d.division||'—')===div)&&(k==='ready2'?(succKey(d)==='now'||succKey(d)==='1y'):succKey(d)===k));
+  BENCH_LIST=rows;
+  document.getElementById('bcTitle').textContent=(div||'ทุกสายงาน')+' — '+(k==='ready2'?'ทายาทพร้อมภายใน 2 ปี':RDY_LBL[k]);
+  document.getElementById('bcSubT').textContent=rows.length+' ตำแหน่ง (คลิกที่ตำแหน่งเพื่อดูรายละเอียด)';
+  document.getElementById('bcList').innerHTML=rows.map((d,i)=>`<div class="bc-item" data-i="${i}"><b>${d.pos}</b><span>ผู้ดำรงตำแหน่ง: ${d.name} · ${d.division||'—'} · ${d.quadrant||''}</span><span>ทายาท: ${succNamesOf(d)}</span></div>`).join('')||'<div class="sp-empty">ไม่มีตำแหน่ง</div>';
+  document.querySelectorAll('#bcList .bc-item').forEach(el=>{ el.onclick=()=>showSuccDetail(BENCH_LIST[+el.dataset.i]); });
+  document.getElementById('bcOv').classList.add('on');
+}
+let BENCH_LIST=[];
+function closeBenchList(){ document.getElementById('bcOv').classList.remove('on'); }
+
+// ── ตำแหน่งสำคัญ: High Impact (HR + LR) กรองสายงาน/ความพร้อมได้ ──
+let CRIT_ROWS=[];
+function renderCrit(){
+  const el=document.getElementById('benchCrit'); if(!el) return;
+  const base=succData.filter(d=>d.hasScore&&/^High Impact/.test(d.quadrant||''));
+  const dsel=document.getElementById('bcDiv');
+  const divs=[...new Set(base.map(d=>d.division||'—'))].sort();
+  const cur=dsel.value;
+  if(dsel.options.length-1!==divs.length){ dsel.innerHTML='<option value="">ทุกสายงาน</option>'+divs.map(v=>`<option>${v}</option>`).join(''); dsel.value=divs.includes(cur)?cur:''; }
+  const fd=dsel.value, fr=document.getElementById('bcReady').value;
+  const order={ext:0,none:1,'3y':2,'1y':3,now:4};
+  CRIT_ROWS=base.filter(d=>(!fd||(d.division||'—')===fd)&&(!fr||(fr==='gap'?(succKey(d)==='ext'||succKey(d)==='none'):succKey(d)===fr)))
+    .sort((a,b)=>(order[succKey(a)]-order[succKey(b)])||((b.riskScore||0)-(a.riskScore||0)));
+  document.getElementById('bcCount').textContent='แสดง '+CRIT_ROWS.length+' จาก '+base.length+' ตำแหน่ง';
+  if(!CRIT_ROWS.length){ el.innerHTML='<div class="sp-empty">ไม่พบตำแหน่งตามเงื่อนไขที่เลือก</div>'; return; }
+  el.innerHTML=`<table class="bench-crit"><thead><tr><th>ตำแหน่ง</th><th>ผู้ดำรงตำแหน่ง</th><th>สายงาน</th><th>Quadrant</th><th>Risk</th><th>ทายาท</th><th>ความพร้อม</th></tr></thead><tbody>`+
+    CRIT_ROWS.map((d,i)=>{
+      const k=succKey(d), hr=d.quadrant==='High Impact + High Risk';
+      return `<tr class="bcr" data-i="${i}"><td>${d.pos}</td><td>${d.name}</td><td>${d.division||'—'}</td><td><span style="color:${hr?'#C0392B':'#E67E22'};font-weight:700;font-size:11px">${hr?'High Risk':'Low Risk'}</span></td><td>${d.riskScore??'—'}</td><td>${succNamesOf(d)}</td><td><span class="rdy-chip" style="background:${RDY_COL[k]}">${RDY_LBL[k]}</span></td></tr>`;
     }).join('')+`</tbody></table>`;
-  el.querySelectorAll('tr.bcr').forEach(tr=>{ tr.onclick=()=>showSuccDetail(crit[+tr.dataset.i]); });
+  el.querySelectorAll('tr.bcr').forEach(tr=>{ tr.onclick=()=>showSuccDetail(CRIT_ROWS[+tr.dataset.i]); });
 }
 
 // ── toggle แสดง/ซ่อนชื่อบนกราฟ — ผู้ใช้กดเอง ยึดตาม filter ปัจจุบัน ──
