@@ -263,6 +263,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .bench-crit td{padding:7px 8px;border-bottom:1px solid #F0F0F0;}
 .bench-crit tr.bcr{cursor:pointer;}
 .bench-crit tr.bcr:hover{background:var(--lg);}
+.crit-info{background:#fff;border:1px solid var(--mid);border-radius:10px;margin:0 0 14px;font-size:12px;}
+.crit-info summary{cursor:pointer;padding:10px 14px;font-weight:700;font-size:12.5px;}
+.crit-info .ci-body{padding:0 14px 12px;}
+.ci-rule{margin:7px 0;line-height:1.55;}
+.ci-tbl{border-collapse:collapse;width:100%;font-size:11.5px;margin:8px 0;table-layout:fixed;}
+.ci-tbl th,.ci-tbl td{border:1px solid var(--mid);padding:5px 7px;text-align:center;}
+.ci-tbl th{background:var(--lg);}
+.ci-tbl td:first-child,.ci-tbl th:first-child{text-align:left;width:24%;}
 .bench-seg{cursor:pointer;transition:filter .15s;}
 .bench-seg:hover{filter:brightness(1.12);outline:2px solid rgba(0,0,0,.25);outline-offset:-2px;}
 .bench-tile.clk{cursor:pointer;}
@@ -395,6 +403,22 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
         <div class="matrix-axis-x">ผลกระทบหากตำแหน่งนี้ว่าง (Vacancy Impact)</div>
       </div>
       <div class="sp-legend-row" id="spLegend"></div>
+      <details class="crit-info">
+        <summary>ℹ️ เกณฑ์การจัดกลุ่ม Quadrant — ต้องได้คะแนนเท่าไรจึงอยู่ในแต่ละกลุ่ม</summary>
+        <div class="ci-body">
+          <div class="ci-rule"><b>แกนตั้ง — Business Impact (1–5):</b> หัวหน้างานให้คะแนนตามผลกระทบต่อธุรกิจหากตำแหน่งว่าง &nbsp;→&nbsp; <b>High Impact = 4 ขึ้นไป</b> · Low Impact = ต่ำกว่า 4</div>
+          <div class="ci-rule"><b>แกนนอน — Risk of Vacancy (1.0–5.0):</b> = อายุ×20% + แนวโน้มลาออก×30% + ความยากในการหาคนทดแทน×30% + ระยะเวลาพัฒนาคนใหม่×20% &nbsp;→&nbsp; <b>High Risk = 3.5 ขึ้นไป</b> · Low Risk = ต่ำกว่า 3.5</div>
+          <table class="ci-tbl">
+            <tr><th>คะแนนองค์ประกอบ</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+            <tr><td>อายุ (คำนวณอัตโนมัติ)</td><td>&lt;50 ปี</td><td>50–54</td><td>55–57</td><td>58–59</td><td>60+</td></tr>
+            <tr><td>แนวโน้มลาออก (ให้ 1, 3, 5)</td><td>อยู่ระยะยาว</td><td>—</td><td>ไม่แน่ชัด</td><td>—</td><td>โอกาสลาออกสูง / แจ้งเกษียณ</td></tr>
+            <tr><td>ความยากในการหาคนทดแทน</td><td>≤1 เดือน</td><td>1–2 เดือน</td><td>3–4 เดือน</td><td>5–6 เดือน</td><td>&gt;6 เดือน</td></tr>
+            <tr><td>ระยะเวลาพัฒนาคนใหม่</td><td>≤3 เดือน</td><td>3–6 เดือน</td><td>6–12 เดือน</td><td>1–2 ปี</td><td>&gt;2 ปี</td></tr>
+          </table>
+          <div class="ci-rule"><b>ตัวอย่าง:</b> อายุ 56 ปี (3) · ลาออก 3 · หาคนยาก 4 · พัฒนา 4 → 3×0.2 + 3×0.3 + 4×0.3 + 4×0.2 = <b>3.5 = High Risk</b></div>
+          <div class="ci-rule" style="color:var(--gy)">แต่ละกลุ่ม: High Impact + High Risk = ต้องทำ Succession Plan ทันที · High Impact + Low Risk = วางแผนระยะยาว · Low Impact + High Risk = เตรียม Backup Plan · Low Impact + Low Risk = ติดตามตามปกติ</div>
+        </div>
+      </details>
 
       <div class="bench-box" id="benchBox">
         <div class="bench-head">🧭 ภาพรวมความพร้อมของทายาท (Bench Strength) <span class="bench-sub" id="benchSub"></span></div>
