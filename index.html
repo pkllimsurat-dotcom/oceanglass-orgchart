@@ -240,7 +240,13 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .bench-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:10.5px;font-weight:700;min-width:0;}
 .bench-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:var(--gy);margin:10px 0 4px;}
 .bench-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
-.bench-crit-title{font-size:13px;font-weight:700;margin:16px 0 8px;}
+:root{--tbh:55px;}
+.sec{position:relative;margin-top:16px;scroll-margin-top:calc(var(--tbh) + 6px);}
+.bench-crit-title{font-size:13px;font-weight:700;margin:0;padding:9px 0 8px;position:sticky;top:var(--tbh);z-index:20;background:#fff;border-bottom:1px solid var(--mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:36px;box-sizing:border-box;line-height:19px;}
+.bench-box,.nb-box,.sp-table-wrap{scroll-margin-top:calc(var(--tbh) + 6px);}
+.bench-crit th{position:sticky;top:calc(var(--tbh) + 36px);z-index:15;background:#fff;box-shadow:0 1px 0 var(--mid);}
+.bench-crit td{word-break:break-word;}
+#toTop{width:38px !important;height:38px !important;font-size:14px !important;}
 .bench-crit{width:100%;border-collapse:collapse;font-size:12px;}
 .bench-crit th{text-align:left;color:var(--gy);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--mid);}
 .bench-crit td{padding:7px 8px;border-bottom:1px solid #F0F0F0;}
@@ -250,7 +256,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .bench-seg:hover{filter:brightness(1.12);outline:2px solid rgba(0,0,0,.25);outline-offset:-2px;}
 .bench-tile.clk{cursor:pointer;}
 .bench-tile.clk:hover{box-shadow:0 0 0 2px var(--red) inset;}
-.bc-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;}
+.bc-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;}
 .bc-filters select{padding:6px 10px;border:1px solid var(--mid);border-radius:8px;font-size:12px;background:#fff;font-family:inherit;}
 .bc-filters .bc-count{font-size:12px;color:var(--gy);margin-left:auto;}
 .rdy-chip{display:inline-block;border-radius:10px;padding:2px 9px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;}
@@ -384,6 +390,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
         <div class="bench-tiles" id="benchTiles"></div>
         <div id="benchBars"></div>
         <div class="bench-legend" id="benchLegend"></div>
+        <div class="sec" id="secCrit">
         <div class="bench-crit-title">⚠️ ตำแหน่งสำคัญ — High Impact (High Risk + Low Risk) <span class="bench-sub">(คลิกแถวเพื่อดูรายละเอียด · เรียงตำแหน่งที่ยังไม่มีทายาทไว้บนสุด)</span></div>
         <div class="bc-filters">
           <select id="bcDiv" onchange="renderCrit()"><option value="">ทุกสายงาน</option></select>
@@ -399,6 +406,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
           <span class="bc-count" id="bcCount"></span>
         </div>
         <div id="benchCrit"></div>
+        </div>
       </div>
 
       <div class="nb-box" id="nbBox">
@@ -409,8 +417,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
           <div class="nb-grid" id="nbGrid"></div>
         </div>
         <div class="nb-xlabel">Potential (Leadership + Functional Skills) →</div>
-        <div class="bench-crit-title">ทายาทที่ระบุชื่อแล้ว — สถานะข้อมูล <span class="bench-sub">(คลิกแถวเพื่อดู Gap รายข้อ)</span></div>
+        <div class="sec" id="secNb">
+        <div class="bench-crit-title">👥 ทายาทที่ระบุชื่อแล้ว — สถานะข้อมูล <span class="bench-sub">(คลิกแถวเพื่อดู Gap รายข้อ)</span></div>
         <div id="nbPending"></div>
+        </div>
       </div>
 
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;position:relative;">
@@ -1690,10 +1700,8 @@ let BENCH_DATA=[];
 const RDY_LBL={now:'พร้อมทันที','1y':'พร้อม 1-2 ปี','3y':'พร้อม 3-5 ปี',ext:'สรรหาจากภายนอก',none:'ยังไม่ระบุผู้สืบทอด'};
 const RDY_COL={now:'#1E8449','1y':'#7DBE3C','3y':'#E6A100',ext:'#7B61A8',none:'#999'};
 function succNamesOf(d){
-  const k=succKey(d);
   const named=(d.succList||[]).filter(x=>x.k!=='ext'&&x.k!=='none'&&x.name);
-  if(named.length) return named.map(x=>x.name+(x.ready?' ('+x.ready+')':'')).join(', ');
-  return k==='ext'?'สรรหาจากภายนอก':'—';
+  return named.length?named.map(x=>x.name).join(', '):'—';
 }
 function openBenchList(div,k){
   const rows=BENCH_DATA.filter(d=>(!div||(d.division||'—')===div)&&(k==='ready2'?(succKey(d)==='now'||succKey(d)==='1y'):succKey(d)===k));
@@ -2050,7 +2058,7 @@ init();
 <button id="toTop" type="button" title="กลับขึ้นด้านบน" aria-label="กลับขึ้นด้านบน">▲</button>
 <style>
 #toTop{position:fixed;right:20px;bottom:24px;width:44px;height:44px;border-radius:50%;border:none;background:var(--red);color:#fff;font-size:16px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:900;}
-#toTop.show{opacity:.92;pointer-events:auto;}
+#toTop.show{opacity:.6;pointer-events:auto;}
 #toTop:hover{opacity:1;transform:translateY(-2px);}
 </style>
 <script>
