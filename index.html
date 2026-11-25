@@ -246,6 +246,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--sf);color:var(--bl
 .bench-box,.nb-box,.sp-table-wrap{scroll-margin-top:calc(var(--tbh) + 6px);}
 .bench-crit th{position:sticky;top:calc(var(--tbh) + 36px);z-index:15;background:#fff;box-shadow:0 1px 0 var(--mid);}
 .bench-crit td{word-break:break-word;}
+/* ตารางขนาดคงที่: หน้าตาเหมือนกันไม่ว่าเลือกตัวกรองอะไร ข้อความยาวถูกตัดเป็น 2 บรรทัด (เลื่อนเมาส์ค้างดูข้อความเต็ม) */
+.bench-crit.fx{table-layout:fixed;width:100%;}
+.bench-crit.fx th,.bench-crit.fx td{overflow:hidden;vertical-align:middle;padding-left:6px;padding-right:6px;}
+.bench-crit.fx th{white-space:nowrap;text-overflow:ellipsis;}
+.cl{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35;word-break:break-word;}
+.rdy-chip{max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;}
+.bench-row{grid-template-columns:130px minmax(0,1fr) 70px !important;}
+.bench-tiles{grid-template-columns:repeat(5,minmax(0,1fr)) !important;}
+#succContent{overflow-x:clip;max-width:100%;}
+.bench-box,.nb-box,.sec{min-width:0;max-width:100%;}
+@media(max-width:760px){.bench-crit.fx{table-layout:auto;font-size:11px;}.bench-tiles{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}}
 #toTop{width:38px !important;height:38px !important;font-size:14px !important;}
 .bench-crit{width:100%;border-collapse:collapse;font-size:12px;}
 .bench-crit th{text-align:left;color:var(--gy);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--mid);}
@@ -1699,6 +1710,8 @@ function renderBench(filtered){
 let BENCH_DATA=[];
 const RDY_LBL={now:'พร้อมทันที','1y':'พร้อม 1-2 ปี','3y':'พร้อม 3-5 ปี',ext:'สรรหาจากภายนอก',none:'ยังไม่ระบุผู้สืบทอด'};
 const RDY_COL={now:'#1E8449','1y':'#7DBE3C','3y':'#E6A100',ext:'#7B61A8',none:'#999'};
+function escA(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function cl(t){ return `<span class="cl" title="${escA(t)}">${escA(t)}</span>`; }
 function succNamesOf(d){
   const named=(d.succList||[]).filter(x=>x.k!=='ext'&&x.k!=='none'&&x.name);
   return named.length?named.map(x=>x.name).join(', '):'—';
@@ -1730,10 +1743,10 @@ function renderCrit(){
     .sort((a,b)=>(order[succKey(a)]-order[succKey(b)])||((b.riskScore||0)-(a.riskScore||0)));
   document.getElementById('bcCount').textContent='แสดง '+CRIT_ROWS.length+' จาก '+base.length+' ตำแหน่ง';
   if(!CRIT_ROWS.length){ el.innerHTML='<div class="sp-empty">ไม่พบตำแหน่งตามเงื่อนไขที่เลือก</div>'; return; }
-  el.innerHTML=`<table class="bench-crit"><thead><tr><th>ตำแหน่ง</th><th>ผู้ดำรงตำแหน่ง</th><th>สายงาน</th><th>Quadrant</th><th>Risk</th><th>ทายาท</th><th>ความพร้อม</th></tr></thead><tbody>`+
+  el.innerHTML=`<table class="bench-crit fx"><colgroup><col style="width:27%"><col style="width:15%"><col style="width:9%"><col style="width:9%"><col style="width:5%"><col style="width:19%"><col style="width:16%"></colgroup><thead><tr><th>ตำแหน่ง</th><th>ผู้ดำรงตำแหน่ง</th><th>สายงาน</th><th>Quadrant</th><th>Risk</th><th>ทายาท</th><th>ความพร้อม</th></tr></thead><tbody>`+
     CRIT_ROWS.map((d,i)=>{
       const k=succKey(d), hr=d.quadrant==='High Impact + High Risk';
-      return `<tr class="bcr" data-i="${i}"><td>${d.pos}</td><td>${d.name}</td><td>${d.division||'—'}</td><td><span style="color:${hr?'#C0392B':'#E67E22'};font-weight:700;font-size:11px">${hr?'High Risk':'Low Risk'}</span></td><td>${d.riskScore??'—'}</td><td>${succNamesOf(d)}</td><td><span class="rdy-chip" style="background:${RDY_COL[k]}">${RDY_LBL[k]}</span></td></tr>`;
+      return `<tr class="bcr" data-i="${i}"><td>${cl(d.pos)}</td><td>${cl(d.name)}</td><td>${cl(d.division||'—')}</td><td><span style="color:${hr?'#C0392B':'#E67E22'};font-weight:700;font-size:11px;white-space:nowrap">${hr?'High Risk':'Low Risk'}</span></td><td>${d.riskScore??'—'}</td><td>${cl(succNamesOf(d))}</td><td><span class="rdy-chip" style="background:${RDY_COL[succKey(d)]}" title="${RDY_LBL[succKey(d)]}">${RDY_LBL[succKey(d)]}</span></td></tr>`;
     }).join('')+`</tbody></table>`;
   el.querySelectorAll('tr.bcr').forEach(tr=>{ tr.onclick=()=>showSuccDetail(CRIT_ROWS[+tr.dataset.i]); });
 }
@@ -1949,14 +1962,14 @@ function renderNineBox(filtered){
   const el=document.getElementById('nbPending');
   if(!NB_PAIRS.length){ el.innerHTML='<div class="sp-empty">ยังไม่มีทายาทภายในที่ระบุชื่อตามตัวกรองปัจจุบัน</div>'; return; }
   const g=v=>(v===undefined||v===''||v==='n/a')?'—':v;
-  el.innerHTML=`<table class="bench-crit"><thead><tr><th>ทายาท</th><th>ตำแหน่งที่จะสืบทอด</th><th>ความพร้อมที่เสนอ</th><th>เกรด 68/67/66</th><th>เกณฑ์ที่ต้องประเมิน</th><th>ผลประเมิน</th><th>ข้อเสนอจาก Gap</th></tr></thead><tbody>`+
+  el.innerHTML=`<table class="bench-crit fx"><colgroup><col style="width:15%"><col style="width:27%"><col style="width:9%"><col style="width:10%"><col style="width:12%"><col style="width:14%"><col style="width:13%"></colgroup><thead><tr><th>ทายาท</th><th>ตำแหน่งที่จะสืบทอด</th><th>ความพร้อม</th><th>เกรด 68/67/66</th><th>เกณฑ์ที่ประเมิน</th><th>ผลประเมิน</th><th>ข้อเสนอจาก Gap</th></tr></thead><tbody>`+
     NB_PAIRS.map((p,i)=>{
       const rq=REQ[p.d.eid]; const nreq=rq?(rq.FUNC.length+rq.LEAD.length):0;
       const e=em[p.sid];
       const gr=e?[e.g68,e.g67,e.g66].map(g).join(' / '):'—';
       const st=!p.sid?'ไม่พบรหัสพนักงานของทายาท':(p.pot?`ประเมินแล้ว ${p.pot.assessed}/${p.pot.total||'?'} ข้อ`:'ยังไม่ได้ประเมิน');
       const sug=p.pot&&p.pot.sug?`<b>${NB_LBL[p.pot.sug]}</b>${p.pot.complete?'':' <small style="color:#856404">(ประเมินยังไม่ครบ)</small>'}`:'—';
-      return `<tr class="bcr" data-i="${i}"><td><b>${p.x.name}</b></td><td>${p.d.pos}</td><td>${p.x.ready||'—'}</td><td>${gr}</td><td>${nreq?nreq+' ข้อ':'<span style="color:#C0392B">Profile ยังไม่ระบุ</span>'}</td><td>${st}</td><td>${sug}</td></tr>`;
+      return `<tr class="bcr" data-i="${i}"><td><b>${cl(p.x.name)}</b></td><td>${cl(p.d.pos)}</td><td>${cl(p.x.ready||'—')}</td><td>${gr}</td><td>${nreq?nreq+' ข้อ':'<span style="color:#C0392B">Profile ยังไม่ระบุ</span>'}</td><td>${cl(st)}</td><td>${sug}</td></tr>`;
     }).join('')+`</tbody></table>`;
   el.querySelectorAll('tr.bcr').forEach(tr=>{ tr.onclick=()=>showGapDetail(+tr.dataset.i); });
 }
